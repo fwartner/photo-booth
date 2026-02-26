@@ -1,26 +1,348 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #ffffff;
+  --color-foreground: #1a1a2e;
+
+  /* RecyclingMonitor Brand – matches recyclingmonitor.de */
+  --color-rm-teal: #18A092;
+  --color-rm-teal-light: #1FBDAD;
+  --color-rm-teal-dark: #138578;
+  --color-rm-blue: #034C80;
+  --color-rm-blue-dark: #023A62;
+  --color-rm-blue-nav: #034C90;
+  --color-rm-dark: #32373C;
+  --color-rm-gray: #64748B;
+  --color-rm-gray-light: #F8FAFC;
+  --color-rm-gray-200: #E2E8F0;
+  --color-rm-error: #DC2626;
+  --color-rm-warning: #F59E0B;
+  --color-rm-success: #059669;
+
+  /* Font */
+  --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+
+  /* Shadows – corporate, subtle */
+  --shadow-rm-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-rm-card-hover: 0 4px 16px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.06);
+  --shadow-rm-elevated: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-rm-glow-teal: 0 0 40px rgba(24, 160, 146, 0.3);
+  --shadow-rm-glow-blue: 0 0 40px rgba(3, 76, 128, 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Base ── */
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent iOS text size inflation */
+    -webkit-text-size-adjust: 100%;
+    /* Safe area support for notched devices */
+    padding-env: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* Prevent pull-to-refresh and overscroll on iPad/mobile */
+  html {
+    overscroll-behavior: none;
+  }
+
+  /* Touch optimization */
+  button, a, [role="button"], input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  @media (min-width: 768px) {
+    input, select, textarea {
+      font-size: inherit !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Component styles (Tailwind utilities can override these) ── */
+@layer components {
+  /* ── Typography – fluid sizes matching recyclingmonitor.de ── */
+  .rm-heading-1 {
+    font-size: clamp(2.5rem, 3.3vw + 1.7rem, 5.375rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .rm-heading-2 {
+    font-size: clamp(2rem, 2.1vw + 1.4rem, 3.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .rm-heading-3 {
+    font-size: clamp(1.5rem, 1.2vw + 1.1rem, 2.25rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .rm-body-lg {
+    font-size: clamp(1.125rem, 0.3vw + 1rem, 1.5rem);
+    line-height: 1.6;
+  }
+
+  /* ── Gradients ── */
+  .rm-gradient {
+    background: linear-gradient(135deg, #18A092 0%, #034C80 100%);
+  }
+
+  .rm-gradient-subtle {
+    background: linear-gradient(135deg, #18A092 0%, #0A6B9A 50%, #034C80 100%);
+  }
+
+  .rm-gradient-text {
+    background: linear-gradient(90deg, #18A092, #034C80);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Buttons – pill-shaped like recyclingmonitor.de ── */
+  .rm-btn {
+    border-radius: 9999px;
+    padding: calc(0.667em + 2px) calc(1.333em + 2px);
+    font-weight: 600;
+    font-size: 1.125em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    text-decoration: none;
+    line-height: 1.4;
+  }
+
+  .rm-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Primary – dark solid (matches recyclingmonitor.de main CTA) */
+  .rm-btn-primary {
+    background: var(--color-rm-dark);
+    color: #ffffff;
+    border-color: var(--color-rm-dark);
+  }
+
+  .rm-btn-primary:hover {
+    background: #1a1a2e;
+    border-color: #1a1a2e;
+    box-shadow: 0 4px 20px rgba(50, 55, 60, 0.3);
+  }
+
+  /* Teal gradient – accent CTA */
+  .rm-btn-teal {
+    background: linear-gradient(90deg, #18A092, #034C80);
+    color: #ffffff;
+    border-color: transparent;
+  }
+
+  .rm-btn-teal:hover {
+    box-shadow: 0 4px 20px rgba(24, 160, 146, 0.4);
+    filter: brightness(1.05);
+  }
+
+  /* Outline white – on dark backgrounds */
+  .rm-btn-outline {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+  }
+
+  .rm-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #ffffff;
+  }
+
+  /* Outline dark – on light backgrounds */
+  .rm-btn-outline-dark {
+    background: transparent;
+    color: var(--color-rm-dark);
+    border: 2px solid var(--color-rm-gray-200);
+  }
+
+  .rm-btn-outline-dark:hover {
+    border-color: var(--color-rm-teal);
+    color: var(--color-rm-teal);
+  }
+
+  /* Ghost – minimal */
+  .rm-btn-ghost {
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    padding: 0.5em 1em;
+  }
+
+  .rm-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* ── Navigation bar – matching recyclingmonitor.de ── */
+  .rm-nav {
+    background: var(--color-rm-blue-nav);
+    padding: 0.75rem 1rem;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  @media (min-width: 768px) {
+    .rm-nav {
+      padding: 0.875rem 1.5rem;
+    }
+  }
+
+  /* ── Cards ── */
+  .rm-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-rm-card);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .rm-card:hover {
+    box-shadow: var(--shadow-rm-card-hover);
+  }
+
+  .rm-card-interactive {
+    cursor: pointer;
+  }
+
+  .rm-card-interactive:hover {
+    transform: translateY(-2px);
+  }
+
+  .rm-card-selected {
+    box-shadow: 0 0 0 2px var(--color-rm-teal), var(--shadow-rm-card-hover);
+  }
+
+  /* ── Form elements ── */
+  .rm-input {
+    width: 100%;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid var(--color-rm-gray-200);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    background: #ffffff;
+    color: var(--color-rm-dark);
+  }
+
+  @media (min-width: 768px) {
+    .rm-input {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+      font-size: 1.125rem;
+    }
+  }
+
+  .rm-input:focus {
+    border-color: var(--color-rm-teal);
+    box-shadow: 0 0 0 3px rgba(24, 160, 146, 0.12);
+  }
+
+  .rm-input-error {
+    border-color: var(--color-rm-error);
+  }
+
+  .rm-input-error:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  }
+
+  /* ── Animations ── */
+  .animate-processing-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(24, 160, 146, 0.4), transparent);
+    background-size: 200% 100%;
+    animation: processing-shimmer 2s linear infinite;
+  }
+
+  .animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+  .animate-float-gentle { animation: float-gentle 3s ease-in-out infinite; }
+  .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+  /* ── Mobile utilities ── */
+
+  /* Safe bottom padding for fixed bottom elements */
+  .rm-safe-bottom {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  /* Full-height accounting for mobile browser chrome */
+  .rm-full-height {
+    min-height: 100svh;
+  }
+
+  /* Prevent content from going under notch */
+  .rm-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Compact card layout for mobile */
+  @media (max-width: 767px) {
+    .rm-card-compact {
+      padding: 1rem;
+    }
+
+    .rm-card-compact .rm-card-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+
+    /* Reduce heading sizes on small screens */
+    .rm-heading-1 {
+      font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    .rm-heading-2 {
+      font-size: clamp(1.5rem, 6vw, 2.25rem);
+    }
+
+    .rm-body-lg {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  }
+}
+
+/* ── Keyframes (must be outside layers) ── */
+@keyframes processing-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

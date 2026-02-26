@@ -1,0 +1,16 @@
+[Unit]
+Description=Photo Booth Print Agent
+After=network-online.target cups.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/print-agent
+ExecStart=/home/pi/print-agent/venv/bin/python3 print_agent.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
