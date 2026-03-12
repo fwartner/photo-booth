@@ -2,46 +2,42 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Superpower, SUPERPOWERS } from "@/lib/types";
+import { Heldentyp, HELDENTYPEN } from "@/lib/types";
 
 interface Props {
-  superpower: Superpower;
+  superpower: Heldentyp;
 }
 
 const PROCESSING_MESSAGES = [
   "Foto wird analysiert",
-  "KI wird aktiviert",
-  "Superkraft wird angewandt",
-  "Bild wird transformiert",
+  "Heldentyp wird erkannt",
+  "Transformation startet",
+  "Branchenkontext wird geladen",
+  "Bild wird generiert",
   "Fast fertig",
 ];
 
 export default function ProcessingView({ superpower }: Props) {
   const [messageIndex, setMessageIndex] = useState(0);
-  const sp = SUPERPOWERS[superpower];
+  const sp = HELDENTYPEN[superpower];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((i) => (i + 1) % PROCESSING_MESSAGES.length);
-    }, 3000);
+    }, 2500);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="pb-full-h flex flex-col pb-gradient-bg relative">
-      {/* Nav */}
       <nav className="pb-nav flex items-center justify-center relative z-10">
         <img src="/logo.svg" alt="RecyclingMonitor" className="h-5 brightness-0 invert opacity-50" />
       </nav>
 
-      {/* Content */}
       <div className="flex-1 flex items-center justify-center relative z-10 overflow-hidden">
-        {/* Background animation */}
         <BackgroundEffect superpower={superpower} color={sp.color} />
 
-        {/* Central content */}
         <div className="relative z-10 text-center px-6 w-full max-w-md">
-          {/* Icon */}
           <motion.div
             className="text-5xl md:text-7xl mb-8 md:mb-12"
             animate={{
@@ -57,7 +53,6 @@ export default function ProcessingView({ superpower }: Props) {
             {sp.icon}
           </motion.div>
 
-          {/* Progress ring */}
           <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-8 md:mb-12">
             <svg className="w-full h-full" viewBox="0 0 100 100">
               <circle
@@ -94,7 +89,6 @@ export default function ProcessingView({ superpower }: Props) {
             </div>
           </div>
 
-          {/* Message carousel */}
           <AnimatePresence mode="wait">
             <motion.p
               key={messageIndex}
@@ -109,10 +103,9 @@ export default function ProcessingView({ superpower }: Props) {
           </AnimatePresence>
 
           <p className="text-pb-sand-dim/40 text-xs mb-8">
-            Superkraft: <span style={{ color: sp.color }}>{sp.label}</span>
+            Heldentyp: <span style={{ color: sp.color }}>{sp.label}</span>
           </p>
 
-          {/* Shimmer bar */}
           <div className="w-48 h-[2px] mx-auto overflow-hidden rounded-full bg-white/5">
             <div className="w-full h-full animate-processing-shimmer" />
           </div>
@@ -122,10 +115,9 @@ export default function ProcessingView({ superpower }: Props) {
   );
 }
 
-function BackgroundEffect({ superpower, color }: { superpower: Superpower; color: string }) {
+function BackgroundEffect({ superpower, color }: { superpower: Heldentyp; color: string }) {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Subtle radial glow */}
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -133,7 +125,26 @@ function BackgroundEffect({ superpower, color }: { superpower: Superpower; color
         }}
       />
 
-      {superpower === "superhero" && (
+      {superpower === "transparenz_scout" && (
+        <>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute h-px"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${color}30, transparent)`,
+                width: `${40 + i * 10}%`,
+                left: `${30 - i * 5}%`,
+                top: `${20 + i * 12}%`,
+              }}
+              animate={{ opacity: [0, 0.5, 0], x: [-20, 20, -20] }}
+              transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: i * 0.3 }}
+            />
+          ))}
+        </>
+      )}
+
+      {superpower === "effizienz_architekt" && (
         <>
           {[0, 1, 2].map((i) => (
             <motion.div
@@ -156,7 +167,35 @@ function BackgroundEffect({ superpower, color }: { superpower: Superpower; color
         </>
       )}
 
-      {superpower === "time_traveler" && (
+      {superpower === "impact_maker" && (
+        <>
+          {Array.from({ length: 8 }).map((_, i) => {
+            const positions = [
+              { x: 15, y: 20 }, { x: 75, y: 15 }, { x: 85, y: 65 }, { x: 25, y: 80 },
+              { x: 55, y: 25 }, { x: 40, y: 70 }, { x: 70, y: 45 }, { x: 30, y: 40 },
+            ];
+            return (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: color,
+                  left: `${positions[i].x}%`,
+                  top: `${positions[i].y}%`,
+                }}
+                animate={{ opacity: [0, 0.5, 0], scale: [0, 1.5, 0] }}
+                transition={{
+                  duration: 2.5 + i * 0.3,
+                  repeat: Infinity,
+                  delay: i * 0.3,
+                }}
+              />
+            );
+          })}
+        </>
+      )}
+
+      {superpower === "smarter_entscheider" && (
         <>
           {[0, 1, 2].map((i) => (
             <motion.div
@@ -188,39 +227,6 @@ function BackgroundEffect({ superpower, color }: { superpower: Superpower; color
               ))}
             </motion.div>
           ))}
-        </>
-      )}
-
-      {superpower === "fantasy" && (
-        <>
-          {Array.from({ length: 8 }).map((_, i) => {
-            const positions = [
-              { x: 15, y: 20 }, { x: 75, y: 15 }, { x: 85, y: 65 }, { x: 25, y: 80 },
-              { x: 55, y: 25 }, { x: 40, y: 70 }, { x: 70, y: 45 }, { x: 30, y: 40 },
-            ];
-            const durations = [2.5, 3.2, 2.8, 3.5, 2.6, 3.0, 2.9, 3.3];
-            const delays = [0, 0.8, 0.3, 1.2, 0.5, 1.0, 0.7, 1.4];
-            return (
-              <motion.div
-                key={i}
-                className="absolute w-1.5 h-1.5 rounded-full"
-                style={{
-                  background: color,
-                  left: `${positions[i].x}%`,
-                  top: `${positions[i].y}%`,
-                }}
-                animate={{
-                  opacity: [0, 0.5, 0],
-                  scale: [0, 1.5, 0],
-                }}
-                transition={{
-                  duration: durations[i],
-                  repeat: Infinity,
-                  delay: delays[i],
-                }}
-              />
-            );
-          })}
         </>
       )}
     </div>

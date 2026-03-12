@@ -3,10 +3,10 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, RotateCcw, ArrowLeft } from "lucide-react";
-import { Superpower, SUPERPOWERS } from "@/lib/types";
+import { Heldentyp, HELDENTYPEN } from "@/lib/types";
 
 interface Props {
-  superpower: Superpower;
+  superpower: Heldentyp;
   onCapture: (photoBase64: string) => void;
   onBack: () => void;
 }
@@ -20,7 +20,7 @@ export default function CameraView({ superpower, onCapture, onBack }: Props) {
   const [flash, setFlash] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  const sp = SUPERPOWERS[superpower];
+  const sp = HELDENTYPEN[superpower];
 
   const stopStream = useCallback(() => {
     if (streamRef.current) {

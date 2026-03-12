@@ -32,7 +32,7 @@ export default function StartScreen({ onStart }: Props) {
       <nav className="pb-nav flex items-center justify-between relative z-10">
         <img src="/logo.svg" alt="RecyclingMonitor" className="h-5 md:h-6 brightness-0 invert opacity-80" />
         <span className="text-pb-teal text-sm font-semibold tracking-wide">
-          Foto-Box
+          IFAT 2026
         </span>
       </nav>
 
@@ -48,7 +48,7 @@ export default function StartScreen({ onStart }: Props) {
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pb-teal/10 border border-pb-teal/20 text-pb-teal text-sm font-medium">
               <span className="w-2 h-2 rounded-full bg-pb-teal animate-pulse" />
-              Interaktive KI-Erfahrung
+              IFAT 2026 — KI-Foto-Erlebnis
             </span>
           </motion.div>
 
@@ -59,9 +59,9 @@ export default function StartScreen({ onStart }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Entdecke deine{" "}
+            Helden der{" "}
             <span className="bg-gradient-to-r from-pb-teal to-pb-blue-light bg-clip-text text-transparent">
-              Superkraft
+              Kreislaufwirtschaft
             </span>
           </motion.h1>
 
@@ -72,7 +72,7 @@ export default function StartScreen({ onStart }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
           >
-            Mach ein Foto, wähle deine Kraft und lass
+            Wähle deinen Heldentyp, mach ein Foto und lass
             unsere KI dich verwandeln.
           </motion.p>
 
@@ -101,9 +101,9 @@ export default function StartScreen({ onStart }: Props) {
             transition={{ delay: 0.8, duration: 0.6 }}
           >
             {[
-              { num: "01", label: "Superkraft", icon: "⚡" },
+              { num: "01", label: "Heldentyp", icon: "🦸" },
               { num: "02", label: "Foto", icon: "📸" },
-              { num: "03", label: "Magie", icon: "✨" },
+              { num: "03", label: "Transformation", icon: "✨" },
             ].map((step, i) => (
               <div key={step.label} className="flex flex-col items-center gap-1.5">
                 <span className="text-lg">{step.icon}</span>

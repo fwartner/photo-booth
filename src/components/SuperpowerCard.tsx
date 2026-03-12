@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Superpower } from "@/lib/types";
+import { Heldentyp } from "@/lib/types";
 
 interface Props {
-  id: Superpower;
+  id: Heldentyp;
   label: string;
   description: string;
   icon: string;
@@ -57,7 +57,7 @@ export default function SuperpowerCard({
 
       {/* Icon */}
       <div
-        className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-2xl md:text-3xl mb-3 mx-auto transition-all duration-200"
+        className="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-2xl md:text-3xl mb-2.5 mx-auto transition-all duration-200"
         style={{
           background: selected ? `${color}15` : "rgba(255,255,255,0.03)",
           border: `1px solid ${selected ? `${color}25` : "rgba(255,255,255,0.05)"}`,
@@ -73,7 +73,7 @@ export default function SuperpowerCard({
       >
         {label}
       </h3>
-      <p className="text-pb-sand-dim text-[11px] md:text-xs leading-relaxed opacity-50 hidden sm:block">
+      <p className="text-pb-sand-dim text-[10px] md:text-xs leading-relaxed opacity-50">
         {description}
       </p>
 
@@ -88,8 +88,27 @@ export default function SuperpowerCard({
         />
       )}
 
-      {/* Superpower-specific subtle effect */}
-      {selected && id === "superhero" && (
+      {/* Hero-specific subtle effects */}
+      {selected && id === "transparenz_scout" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute h-px"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${color}40, transparent)`,
+                width: "60%",
+                left: "20%",
+                top: `${35 + i * 15}%`,
+              }}
+              animate={{ opacity: [0, 0.6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
+            />
+          ))}
+        </div>
+      )}
+
+      {selected && id === "effizienz_architekt" && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
           {[0, 1, 2].map((i) => (
             <motion.div
@@ -107,29 +126,29 @@ export default function SuperpowerCard({
         </div>
       )}
 
-      {selected && id === "time_traveler" && (
-        <motion.div
-          className="absolute bottom-3 right-3 w-8 h-8 border border-current rounded-full opacity-10 pointer-events-none hidden md:block"
-          style={{ borderColor: color }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-        />
-      )}
-
-      {selected && id === "fantasy" && (
+      {selected && id === "impact_maker" && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
           {[0, 1].map((i) => (
             <motion.div
               key={i}
               className="absolute text-[8px]"
               style={{ left: `${30 + i * 30}%`, top: `${40 + (i % 2) * 20}%` }}
-              animate={{ opacity: [0, 0.5, 0], scale: [0, 1, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: i * 0.8 }}
+              animate={{ opacity: [0, 0.5, 0], scale: [0, 1, 0], rotate: [0, 180, 360] }}
+              transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.8 }}
             >
-              ✨
+              ♻️
             </motion.div>
           ))}
         </div>
+      )}
+
+      {selected && id === "smarter_entscheider" && (
+        <motion.div
+          className="absolute bottom-3 right-3 w-8 h-8 border border-current rounded-full opacity-10 pointer-events-none hidden md:block"
+          style={{ borderColor: color }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        />
       )}
     </motion.button>
   );

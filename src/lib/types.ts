@@ -1,12 +1,16 @@
-export type Superpower = "superhero" | "time_traveler" | "fantasy";
+export type Heldentyp =
+  | "transparenz_scout"
+  | "effizienz_architekt"
+  | "impact_maker"
+  | "smarter_entscheider";
 
-export type Industry =
+export type Kategorie =
   | "entsorger"
+  | "erzeuger"
   | "wertstoffhof"
-  | "abfallerzeuger"
-  | "kommune"
-  | "industrie"
-  | "sonstige";
+  | "technologieanbieter";
+
+export type Stilmodus = "professional" | "extreme";
 
 export type AppStep =
   | "start"
@@ -18,19 +22,24 @@ export type AppStep =
   | "confirmed";
 
 export interface FormData {
-  superpower: Superpower;
-  industry: Industry;
+  heldentyp: Heldentyp;
+  kategorie: Kategorie;
+  mode: Stilmodus;
+  personenanzahl: number;
+  firmenname?: string;
 }
 
 export interface SessionData {
-  superpower: Superpower;
+  heldentyp: Heldentyp;
+  kategorie: Kategorie;
+  mode: Stilmodus;
+  personenanzahl: number;
+  firmenname?: string;
   email: string;
-  industry: Industry;
   privacy_accepted: boolean;
   session_id: string;
-  photo?: string; // base64
-  processed_photo?: string; // base64 from webhook response
-  pipedrive_person_id?: string;
+  photo?: string;
+  processed_photo?: string;
   print_photo?: boolean;
 }
 
@@ -47,35 +56,49 @@ export interface WebhookConfirmResponse {
   email?: string;
 }
 
-export const SUPERPOWERS: Record<
-  Superpower,
-  { label: string; description: string; icon: string; color: string }
+export const HELDENTYPEN: Record<
+  Heldentyp,
+  { label: string; description: string; icon: string; color: string; thema: string }
 > = {
-  superhero: {
-    label: "Superheld",
-    description: "Verwandle dich in einen epischen Superhelden mit Umhang und Superkräften!",
+  transparenz_scout: {
+    label: "Transparenz-Scout",
+    description: "Stoffstromtransparenz, Analyse & Nachverfolgbarkeit",
+    icon: "🔍",
+    color: "#18A092",
+    thema: "Daten-HUD, Analyse-Overlays, Materialfluss-Visualisierung",
+  },
+  effizienz_architekt: {
+    label: "Effizienz-Architekt",
+    description: "Prozessoptimierung & Automatisierung",
     icon: "⚡",
-    color: "#DC2626",
+    color: "#F59E0B",
+    thema: "Energie-Linien, industrielle Dynamik, Flow-Elemente",
   },
-  time_traveler: {
-    label: "Zeitreisender",
-    description: "Reise durch die Zeit mit Steampunk-Brille und Zeitvortex!",
-    icon: "⏳",
-    color: "#8B5CF6",
+  impact_maker: {
+    label: "Impact-Maker",
+    description: "Nachhaltigkeit, CO₂-Reduktion & Kreislaufwirtschaft",
+    icon: "🌱",
+    color: "#22C55E",
+    thema: "Kreislauf-Symbole, grüne Energie, Industrie + Natur",
   },
-  fantasy: {
-    label: "Fantasy-Magier",
-    description: "Werde ein mächtiger Zauberer mit magischen Kräften und Zauberstab!",
-    icon: "✨",
-    color: "#2563EB",
+  smarter_entscheider: {
+    label: "Smarter Entscheider",
+    description: "Strategie, KPI & datenbasierte Führung",
+    icon: "📊",
+    color: "#6366F1",
+    thema: "Holografische Dashboards, strategische Präsenz",
   },
 };
 
-export const INDUSTRIES: Record<Industry, string> = {
-  entsorger: "Entsorger / Recycler / Containerdienst",
+export const KATEGORIEN: Record<Kategorie, string> = {
+  entsorger: "Entsorger / Recycler",
+  erzeuger: "Erzeuger / Produzent",
   wertstoffhof: "Wertstoffhofbetreiber",
-  abfallerzeuger: "Abfallerzeuger",
-  kommune: "Kommune / Öffentliche Hand",
-  industrie: "Industrie / Gewerbe",
-  sonstige: "Sonstige",
+  technologieanbieter: "Technologieanbieter",
 };
+
+// Legacy aliases for backward compatibility
+export type Superpower = Heldentyp;
+export type Industry = Kategorie;
+export const SUPERPOWERS = HELDENTYPEN;
+export const INDUSTRIES = KATEGORIEN;

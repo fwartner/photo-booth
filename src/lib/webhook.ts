@@ -5,20 +5,26 @@ const PROCESS_WEBHOOK = `${N8N_BASE_URL}/webhook/photo-booth/process`;
 const CONFIRM_WEBHOOK = `${N8N_BASE_URL}/webhook/photo-booth/confirm`;
 
 /**
- * Send photo for AI processing via n8n → OpenRouter/Gemini.
- * The n8n workflow now returns the processed image synchronously
- * (no more polling — OpenRouter responds inline).
+ * Send photo for AI processing via n8n.
+ * Sends the full parameter structure per spec:
+ * { heldentyp, kategorie, mode, personenanzahl, firmenname }
  */
 export async function sendProcessWebhook(
   data: SessionData
 ): Promise<{ success: boolean; session_id?: string; processed_photo?: string; error?: string }> {
   try {
     const formData = new FormData();
-    formData.append("email", data.email);
-    formData.append("superpower", data.superpower);
-    formData.append("industry", data.industry);
-    formData.append("privacy_accepted", String(data.privacy_accepted));
+    formData.append("heldentyp", data.heldentyp);
+    formData.append("kategorie", data.kategorie);
+    formData.append("mode", data.mode);
+    formData.append("personenanzahl", String(data.personenanzahl));
     formData.append("session_id", data.session_id);
+    formData.append("email", data.email);
+    formData.append("privacy_accepted", String(data.privacy_accepted));
+
+    if (data.firmenname) {
+      formData.append("firmenname", data.firmenname);
+    }
 
     if (data.photo) {
       const photoBlob = base64ToBlob(data.photo, "image/png");
@@ -44,11 +50,9 @@ export async function sendProcessWebhook(
     try {
       result = responseText ? JSON.parse(responseText) : {};
     } catch {
-      // Non-JSON response — treat as success if status was OK
       result = { success: true };
     }
 
-    // n8n returns { success, session_id, processed_photo } directly
     return {
       success: result.success ?? true,
       session_id: result.session_id || data.session_id,
@@ -73,14 +77,16 @@ export async function sendConfirmWebhook(
     formData.append("action", action);
     formData.append("email", data.email);
     formData.append("session_id", data.session_id);
-    formData.append("superpower", data.superpower);
-    formData.append("industry", data.industry);
+    formData.append("heldentyp", data.heldentyp);
+    formData.append("kategorie", data.kategorie);
+    formData.append("mode", data.mode);
+    formData.append("personenanzahl", String(data.personenanzahl));
     formData.append("print_photo", String(data.print_photo ?? true));
-    if (data.pipedrive_person_id) {
-      formData.append("pipedrive_person_id", String(data.pipedrive_person_id));
+
+    if (data.firmenname) {
+      formData.append("firmenname", data.firmenname);
     }
 
-    // Send the processed photo as binary blob
     if (data.processed_photo) {
       const photoBlob = base64ToBlob(data.processed_photo, "image/png");
       formData.append("photo", photoBlob, "processed_photo.png");
@@ -111,7 +117,6 @@ export async function sendConfirmWebhook(
 }
 
 function base64ToBlob(base64: string, mimeType: string): Blob {
-  // Remove data URL prefix if present
   const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
   const byteCharacters = atob(base64Data);
   const byteNumbers = new Array(byteCharacters.length);

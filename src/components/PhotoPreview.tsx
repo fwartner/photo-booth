@@ -2,12 +2,12 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, RotateCcw, ZoomIn } from "lucide-react";
-import { Superpower, SUPERPOWERS } from "@/lib/types";
+import { Heldentyp, HELDENTYPEN } from "@/lib/types";
 import { useState } from "react";
 
 interface Props {
   photo: string;
-  superpower: Superpower;
+  superpower: Heldentyp;
   onConfirm: () => void;
   onRetake: () => void;
 }
@@ -18,7 +18,7 @@ export default function PhotoPreview({
   onConfirm,
   onRetake,
 }: Props) {
-  const sp = SUPERPOWERS[superpower];
+  const sp = HELDENTYPEN[superpower];
   const [zoomed, setZoomed] = useState(false);
 
   return (
@@ -67,7 +67,7 @@ export default function PhotoPreview({
         >
           <img
             src={photo}
-            alt="Dein Superkraft-Foto"
+            alt="Dein Helden-Foto"
             className={`w-full h-auto transition-transform duration-500 ${
               zoomed ? "scale-150" : "scale-100"
             }`}

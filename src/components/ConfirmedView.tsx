@@ -2,17 +2,17 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle, Mail, Printer, RefreshCw } from "lucide-react";
-import { Superpower, SUPERPOWERS } from "@/lib/types";
+import { Heldentyp, HELDENTYPEN } from "@/lib/types";
 
 interface Props {
   email: string;
-  superpower: Superpower;
+  superpower: Heldentyp;
   printPhoto: boolean;
   onRestart: () => void;
 }
 
 export default function ConfirmedView({ email, superpower, printPhoto, onRestart }: Props) {
-  const sp = SUPERPOWERS[superpower];
+  const sp = HELDENTYPEN[superpower];
 
   return (
     <div className="pb-full-h flex flex-col pb-gradient-bg relative">

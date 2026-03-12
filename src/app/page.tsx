@@ -13,7 +13,7 @@ import {
   AppStep,
   FormData,
   SessionData,
-  Superpower,
+  Heldentyp,
 } from "@/lib/types";
 import { sendProcessWebhook, sendConfirmWebhook } from "@/lib/webhook";
 
@@ -21,8 +21,10 @@ export default function PhotoBoothApp() {
   const [step, setStep] = useState<AppStep>("start");
   const [session, setSession] = useState<SessionData>({
     email: "",
-    superpower: "superhero",
-    industry: "sonstige",
+    heldentyp: "transparenz_scout",
+    kategorie: "entsorger",
+    mode: "professional",
+    personenanzahl: 1,
     privacy_accepted: false,
     session_id: "",
   });
@@ -33,12 +35,14 @@ export default function PhotoBoothApp() {
 
   const handleStart = () => setStep("form");
 
-  // Form sets superpower + industry (needed for image generation)
   const handleFormSubmit = (data: FormData) => {
     setSession((prev) => ({
       ...prev,
-      superpower: data.superpower,
-      industry: data.industry,
+      heldentyp: data.heldentyp,
+      kategorie: data.kategorie,
+      mode: data.mode,
+      personenanzahl: data.personenanzahl,
+      firmenname: data.firmenname,
       session_id: generateSessionId(),
     }));
     setStep("camera");
@@ -94,12 +98,10 @@ export default function PhotoBoothApp() {
     setStep("camera");
   };
 
-  // Preview "Weiter" → go to contact form
   const handlePreviewContinue = () => {
     setStep("contact");
   };
 
-  // Contact form submitted → confirm & send to n8n
   const handleContactSubmit = async (data: {
     email: string;
     privacy_accepted: boolean;
@@ -119,8 +121,10 @@ export default function PhotoBoothApp() {
   const handleRestart = () => {
     setSession({
       email: "",
-      superpower: "superhero",
-      industry: "sonstige",
+      heldentyp: "transparenz_scout",
+      kategorie: "entsorger",
+      mode: "professional",
+      personenanzahl: 1,
       privacy_accepted: false,
       session_id: "",
     });
@@ -148,21 +152,21 @@ export default function PhotoBoothApp() {
 
         {step === "camera" && (
           <CameraView
-            superpower={session.superpower as Superpower}
+            superpower={session.heldentyp as Heldentyp}
             onCapture={handleCapture}
             onBack={() => setStep("form")}
           />
         )}
 
         {step === "processing" && (
-          <ProcessingView superpower={session.superpower as Superpower} />
+          <ProcessingView superpower={session.heldentyp as Heldentyp} />
         )}
 
         {step === "preview" && (
           <>
             <PhotoPreview
               photo={session.processed_photo || session.photo || ""}
-              superpower={session.superpower as Superpower}
+              superpower={session.heldentyp as Heldentyp}
               onConfirm={handlePreviewContinue}
               onRetake={handleRetake}
             />
@@ -191,7 +195,7 @@ export default function PhotoBoothApp() {
         {step === "confirmed" && (
           <ConfirmedView
             email={session.email}
-            superpower={session.superpower as Superpower}
+            superpower={session.heldentyp as Heldentyp}
             printPhoto={session.print_photo ?? true}
             onRestart={handleRestart}
           />
