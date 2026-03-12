@@ -14,16 +14,19 @@ export type AppStep =
   | "camera"
   | "processing"
   | "preview"
+  | "contact"
   | "confirmed";
 
 export interface FormData {
-  email: string;
   superpower: Superpower;
   industry: Industry;
-  privacy_accepted: boolean;
 }
 
-export interface SessionData extends FormData {
+export interface SessionData {
+  superpower: Superpower;
+  email: string;
+  industry: Industry;
+  privacy_accepted: boolean;
   session_id: string;
   photo?: string; // base64
   processed_photo?: string; // base64 from webhook response

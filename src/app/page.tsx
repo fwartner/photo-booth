@@ -7,6 +7,7 @@ import RegistrationForm from "@/components/RegistrationForm";
 import CameraView from "@/components/CameraView";
 import ProcessingView from "@/components/ProcessingView";
 import PhotoPreview from "@/components/PhotoPreview";
+import ContactForm from "@/components/ContactForm";
 import ConfirmedView from "@/components/ConfirmedView";
 import {
   AppStep,
@@ -32,10 +33,12 @@ export default function PhotoBoothApp() {
 
   const handleStart = () => setStep("form");
 
+  // Form sets superpower + industry (needed for image generation)
   const handleFormSubmit = (data: FormData) => {
     setSession((prev) => ({
       ...prev,
-      ...data,
+      superpower: data.superpower,
+      industry: data.industry,
       session_id: generateSessionId(),
     }));
     setStep("camera");
@@ -91,10 +94,26 @@ export default function PhotoBoothApp() {
     setStep("camera");
   };
 
-  const handleConfirm = async (printPhoto: boolean) => {
-    setSession((prev) => ({ ...prev, print_photo: printPhoto }));
+  // Preview "Weiter" → go to contact form
+  const handlePreviewContinue = () => {
+    setStep("contact");
+  };
+
+  // Contact form submitted → confirm & send to n8n
+  const handleContactSubmit = async (data: {
+    email: string;
+    privacy_accepted: boolean;
+    print_photo: boolean;
+  }) => {
+    const updatedSession = {
+      ...session,
+      email: data.email,
+      privacy_accepted: data.privacy_accepted,
+      print_photo: data.print_photo,
+    };
+    setSession(updatedSession);
     setStep("confirmed");
-    sendConfirmWebhook({ ...session, print_photo: printPhoto }, "confirm").catch(console.error);
+    sendConfirmWebhook(updatedSession, "confirm").catch(console.error);
   };
 
   const handleRestart = () => {
@@ -116,7 +135,7 @@ export default function PhotoBoothApp() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.25 }}
       >
         {step === "start" && <StartScreen onStart={handleStart} />}
 
@@ -144,25 +163,29 @@ export default function PhotoBoothApp() {
             <PhotoPreview
               photo={session.processed_photo || session.photo || ""}
               superpower={session.superpower as Superpower}
-              onConfirm={(printPhoto) => handleConfirm(printPhoto)}
+              onConfirm={handlePreviewContinue}
               onRetake={handleRetake}
             />
             <AnimatePresence>
               {error && (
                 <motion.div
-                  className="fixed bottom-4 left-4 right-4 bg-rm-warning text-rm-dark p-4 rounded-xl shadow-lg z-50 text-center"
+                  className="fixed bottom-4 left-4 right-4 bg-pb-warning text-pb-black p-4 rounded-xl shadow-lg z-50 text-center"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 50 }}
                 >
-                  <p className="font-semibold">Hinweis</p>
-                  <p className="text-sm">
-                    {error} – Originalfoto wird angezeigt.
+                  <p className="font-semibold text-sm">Hinweis</p>
+                  <p className="text-xs mt-0.5">
+                    {error} — Originalfoto wird angezeigt.
                   </p>
                 </motion.div>
               )}
             </AnimatePresence>
           </>
+        )}
+
+        {step === "contact" && (
+          <ContactForm onSubmit={handleContactSubmit} />
         )}
 
         {step === "confirmed" && (

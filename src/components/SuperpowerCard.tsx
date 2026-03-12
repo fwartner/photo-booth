@@ -25,46 +25,42 @@ export default function SuperpowerCard({
   return (
     <motion.button
       onClick={onSelect}
-      className={`rm-card rm-card-interactive relative p-3 md:p-6 text-left overflow-hidden w-full ${
-        selected ? "rm-card-selected" : ""
+      className={`pb-card pb-card-interactive relative p-4 md:p-5 text-center overflow-hidden w-full ${
+        selected ? "pb-card-selected" : ""
       }`}
       whileTap={{ scale: 0.97 }}
       layout
     >
-      {/* Selection check */}
+      {/* Selection indicator — gradient top bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl transition-opacity duration-200"
+        style={{
+          background: `linear-gradient(90deg, #18A092, ${color})`,
+          opacity: selected ? 1 : 0,
+        }}
+      />
+
+      {/* Check badge */}
       {selected && (
         <motion.div
-          className="absolute top-2 right-2 md:top-4 md:right-4 w-5 h-5 md:w-7 md:h-7 rounded-full bg-rm-teal flex items-center justify-center"
+          className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ background: "linear-gradient(135deg, #18A092, #034C80)" }}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 400 }}
+          transition={{ type: "spring", stiffness: 500 }}
         >
-          <svg
-            className="w-3 h-3 md:w-4 md:h-4 text-white"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-          >
+          <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
             <path d="M5 13l4 4L19 7" />
           </svg>
         </motion.div>
       )}
 
-      {/* Colored accent bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-0.5 md:h-1 rounded-t-2xl transition-opacity duration-300"
-        style={{
-          background: color,
-          opacity: selected ? 1 : 0,
-        }}
-      />
-
       {/* Icon */}
       <div
-        className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl mb-2 md:mb-4 transition-colors duration-300"
+        className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-2xl md:text-3xl mb-3 mx-auto transition-all duration-200"
         style={{
-          background: selected ? `${color}15` : "#F1F5F9",
+          background: selected ? `${color}15` : "rgba(255,255,255,0.03)",
+          border: `1px solid ${selected ? `${color}25` : "rgba(255,255,255,0.05)"}`,
         }}
       >
         {icon}
@@ -72,38 +68,40 @@ export default function SuperpowerCard({
 
       {/* Content */}
       <h3
-        className="font-bold text-sm md:text-lg mb-0.5 md:mb-1.5 transition-colors duration-300 leading-tight"
-        style={{ color: selected ? color : "#32373C" }}
+        className="font-semibold text-sm md:text-base mb-0.5 transition-colors duration-200 leading-tight"
+        style={{ color: selected ? color : "#E8EDEF" }}
       >
         {label}
       </h3>
-      <p className="text-rm-gray text-[11px] md:text-sm leading-snug md:leading-relaxed hidden sm:block">
+      <p className="text-pb-sand-dim text-[11px] md:text-xs leading-relaxed opacity-50 hidden sm:block">
         {description}
       </p>
 
-      {/* Subtle animation when selected */}
+      {/* Ambient glow when selected */}
+      {selected && (
+        <motion.div
+          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-32 h-24 rounded-full blur-2xl pointer-events-none"
+          style={{ background: `${color}12` }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        />
+      )}
+
+      {/* Superpower-specific subtle effect */}
       {selected && id === "superhero" && (
-        <div className="absolute inset-0 pointer-events-none hidden md:block">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="absolute rounded-full"
+              className="absolute w-1 h-1 rounded-full"
               style={{
-                width: 6,
-                height: 6,
                 background: color,
                 left: `${25 + i * 25}%`,
-                bottom: "15%",
+                bottom: "20%",
               }}
-              animate={{
-                y: [0, -40, -80],
-                opacity: [0.5, 0.2, 0],
-              }}
-              transition={{
-                duration: 1.8,
-                repeat: Infinity,
-                delay: i * 0.4,
-              }}
+              animate={{ y: [0, -30, -60], opacity: [0.6, 0.2, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
             />
           ))}
         </div>
@@ -111,33 +109,22 @@ export default function SuperpowerCard({
 
       {selected && id === "time_traveler" && (
         <motion.div
-          className="absolute bottom-2 right-2 md:bottom-3 md:right-3 w-6 h-6 md:w-10 md:h-10 border md:border-2 rounded-full opacity-15 pointer-events-none"
+          className="absolute bottom-3 right-3 w-8 h-8 border border-current rounded-full opacity-10 pointer-events-none hidden md:block"
           style={{ borderColor: color }}
           animate={{ rotate: 360 }}
-          transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
         />
       )}
 
       {selected && id === "fantasy" && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
-          {[0, 1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="absolute text-[10px]"
-              style={{
-                left: `${20 + i * 25}%`,
-                top: `${30 + (i % 2) * 30}%`,
-              }}
-              animate={{
-                opacity: [0, 0.7, 0],
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                delay: i * 0.6,
-              }}
+              className="absolute text-[8px]"
+              style={{ left: `${30 + i * 30}%`, top: `${40 + (i % 2) * 20}%` }}
+              animate={{ opacity: [0, 0.5, 0], scale: [0, 1, 0] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.8 }}
             >
               ✨
             </motion.div>

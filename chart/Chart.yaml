@@ -1,0 +1,5 @@
+apiVersion: v2
+name: photo-booth
+description: Photo Booth Next.js application
+version: 0.1.0
+appVersion: "0.1.0"

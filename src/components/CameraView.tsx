@@ -118,41 +118,41 @@ export default function CameraView({ superpower, onCapture, onBack }: Props) {
   }, [stopStream, onBack]);
 
   return (
-    <div className="rm-full-height bg-rm-dark flex flex-col">
+    <div className="pb-full-h bg-pb-black flex flex-col">
       {/* Nav */}
-      <nav className="rm-nav flex items-center justify-between relative z-20">
+      <nav className="pb-nav flex items-center justify-between relative z-20">
         <button
           onClick={handleBack}
-          className="rm-btn-ghost text-white/80 hover:text-white flex items-center gap-1.5 text-sm rounded-full"
+          className="pb-btn-ghost text-pb-sand-dim hover:text-pb-sand flex items-center gap-1.5 text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Zurück</span>
         </button>
-        <div className="flex items-center gap-1.5 md:gap-2">
-          <span className="text-lg md:text-xl">{sp.icon}</span>
-          <span className="text-white font-semibold text-xs md:text-sm">{sp.label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{sp.icon}</span>
+          <span className="text-pb-sand font-semibold text-sm">{sp.label}</span>
         </div>
         <div className="w-10 sm:w-20" />
       </nav>
 
       {/* Step indicator */}
-      <div className="bg-rm-dark border-b border-white/10">
-        <div className="max-w-3xl mx-auto px-4 md:px-6 py-2 md:py-3 flex items-center gap-2 md:gap-3 text-xs md:text-sm">
-          <span className="flex items-center gap-1 md:gap-1.5 text-white/40">
-            <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-rm-teal text-white flex items-center justify-center text-[10px] md:text-xs font-bold">
-              <svg className="w-2.5 h-2.5 md:w-3 md:h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
+      <div className="bg-pb-charcoal/50 border-b border-white/5">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-2.5 flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-pb-teal text-white flex items-center justify-center text-[10px] font-bold">
+              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
             </span>
-            Daten
+            <span className="pb-label text-pb-sand-dim/40">Superkraft</span>
           </span>
-          <span className="flex-1 h-px bg-white/20 max-w-8" />
-          <span className="flex items-center gap-1 md:gap-1.5 text-rm-teal font-semibold">
-            <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-rm-teal text-white flex items-center justify-center text-[10px] md:text-xs font-bold">2</span>
-            Foto
+          <span className="flex-1 h-px bg-white/10 max-w-8" />
+          <span className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-gradient-to-r from-pb-teal to-pb-blue text-white flex items-center justify-center text-[10px] font-bold" style={{ fontFamily: "var(--font-mono)" }}>02</span>
+            <span className="pb-label text-pb-teal">Foto</span>
           </span>
-          <span className="flex-1 h-px bg-white/20 max-w-8" />
-          <span className="flex items-center gap-1 md:gap-1.5 text-white/40">
-            <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 text-white/40 flex items-center justify-center text-[10px] md:text-xs font-bold">3</span>
-            Ergebnis
+          <span className="flex-1 h-px bg-white/10 max-w-8" />
+          <span className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full bg-white/5 text-pb-sand-dim/40 flex items-center justify-center text-[10px] font-bold" style={{ fontFamily: "var(--font-mono)" }}>03</span>
+            <span className="pb-label text-pb-sand-dim/40">Ergebnis</span>
           </span>
         </div>
       </div>
@@ -160,12 +160,12 @@ export default function CameraView({ superpower, onCapture, onBack }: Props) {
       {/* Camera Feed */}
       <div className="flex-1 flex items-center justify-center relative">
         {cameraError ? (
-          <div className="text-center p-6 md:p-8 max-w-sm md:max-w-md">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 md:mb-6">
-              <Camera className="w-8 h-8 md:w-10 md:h-10 text-white/30" />
+          <div className="text-center p-8 max-w-md">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
+              <Camera className="w-8 h-8 text-pb-sand-dim/30" />
             </div>
-            <p className="text-white/80 text-sm md:text-lg mb-4 md:mb-6 leading-relaxed">{cameraError}</p>
-            <button onClick={startCamera} className="rm-btn rm-btn-outline">
+            <p className="text-pb-sand-dim text-sm mb-6 leading-relaxed">{cameraError}</p>
+            <button onClick={startCamera} className="pb-btn pb-btn-outline">
               <RotateCcw className="w-4 h-4" />
               Erneut versuchen
             </button>
@@ -183,27 +183,27 @@ export default function CameraView({ superpower, onCapture, onBack }: Props) {
             <canvas ref={canvasRef} className="hidden" />
 
             {!ready && (
-              <div className="absolute inset-0 flex items-center justify-center bg-rm-dark z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-pb-black z-10">
                 <div className="text-center">
-                  <div className="w-10 h-10 border-2 border-white/20 border-t-rm-teal rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-white/50 text-sm font-medium">
+                  <div className="w-8 h-8 border-2 border-white/10 border-t-pb-teal rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-pb-sand-dim/50 text-xs font-medium tracking-wide">
                     Kamera wird gestartet...
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Corner frame */}
-            <div className="absolute inset-6 md:inset-12 pointer-events-none">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/40 rounded-tl-xl" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/40 rounded-tr-xl" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/40 rounded-bl-xl" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/40 rounded-br-xl" />
+            {/* Corner brackets — rounded */}
+            <div className="absolute inset-8 md:inset-16 pointer-events-none">
+              <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 border-pb-teal/40 rounded-tl-xl" />
+              <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-pb-teal/40 rounded-tr-xl" />
+              <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-pb-teal/40 rounded-bl-xl" />
+              <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 border-pb-teal/40 rounded-br-xl" />
             </div>
 
             {/* Guide text */}
-            <div className="absolute top-6 left-0 right-0 text-center pointer-events-none">
-              <span className="text-white/60 text-sm font-medium bg-black/40 backdrop-blur-sm inline-block px-5 py-2 rounded-full">
+            <div className="absolute top-8 left-0 right-0 text-center pointer-events-none">
+              <span className="text-sm text-white/70 bg-black/50 backdrop-blur-sm inline-block px-4 py-2 rounded-full font-medium">
                 Positioniere dich in der Mitte
               </span>
             </div>
@@ -214,14 +214,15 @@ export default function CameraView({ superpower, onCapture, onBack }: Props) {
         <AnimatePresence>
           {countdown !== null && (
             <motion.div
-              className="absolute inset-0 flex items-center justify-center bg-black/50 z-30"
+              className="absolute inset-0 flex items-center justify-center bg-black/60 z-30"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.span
                 key={countdown}
-                className="text-white font-bold tabular-nums text-[6rem] md:text-[10rem]"
+                className="text-pb-teal font-bold tabular-nums"
+                style={{ fontFamily: "var(--font-display)", fontSize: "clamp(6rem, 15vw, 12rem)" }}
                 initial={{ scale: 1.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
@@ -248,16 +249,17 @@ export default function CameraView({ superpower, onCapture, onBack }: Props) {
       </div>
 
       {/* Capture button */}
-      <div className="absolute bottom-6 md:bottom-10 left-0 right-0 flex justify-center z-20 rm-safe-bottom">
+      <div className="absolute bottom-8 md:bottom-12 left-0 right-0 flex justify-center z-20 pb-safe-bottom">
         <motion.button
           onClick={startCountdown}
           disabled={countdown !== null || !!cameraError || !ready}
-          className="w-18 h-18 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-sm border-[3px] border-white/80 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-20 h-20 md:w-22 md:h-22 rounded-full backdrop-blur-sm border-[3px] border-pb-teal/70 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ background: "rgba(24,160,146,0.1)" }}
           whileHover={ready ? { scale: 1.08 } : {}}
           whileTap={ready ? { scale: 0.92 } : {}}
         >
-          <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
-            <Camera className="w-6 h-6 text-rm-dark" />
+          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #18A092, #034C80)" }}>
+            <Camera className="w-6 h-6 text-white" />
           </div>
         </motion.button>
       </div>

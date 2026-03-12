@@ -9,113 +9,117 @@ interface Props {
 
 export default function StartScreen({ onStart }: Props) {
   return (
-    <div className="rm-full-height flex flex-col">
+    <div className="pb-full-h flex flex-col pb-gradient-bg relative overflow-hidden">
+      {/* Decorative gradient orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, rgba(24,160,146,0.4) 0%, transparent 70%)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.2 }}
+          transition={{ duration: 1.5 }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-15"
+          style={{ background: "radial-gradient(circle, rgba(3,76,128,0.5) 0%, transparent 70%)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.15 }}
+          transition={{ duration: 1.5, delay: 0.3 }}
+        />
+      </div>
+
       {/* Nav bar */}
-      <nav className="rm-nav flex items-center justify-between">
-        <img src="/logo.svg" alt="RecyclingMonitor" className="h-6 md:h-8" />
-        <span className="text-white/60 text-xs md:text-sm font-medium tracking-wide uppercase">
+      <nav className="pb-nav flex items-center justify-between relative z-10">
+        <img src="/logo.svg" alt="RecyclingMonitor" className="h-5 md:h-6 brightness-0 invert opacity-80" />
+        <span className="text-pb-teal text-sm font-semibold tracking-wide">
           Foto-Box
         </span>
       </nav>
 
-      {/* Hero */}
-      <div className="flex-1 rm-gradient-subtle relative flex items-center justify-center overflow-hidden px-5 py-8 md:px-8">
-        {/* Background circles */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-1/4 -right-1/4 w-[70vw] h-[70vw] md:w-[60vw] md:h-[60vw] rounded-full bg-white/[0.04]" />
-          <div className="absolute -bottom-1/3 -left-1/4 w-[60vw] h-[60vw] md:w-[50vw] md:h-[50vw] rounded-full bg-white/[0.03]" />
+      {/* Hero content */}
+      <div className="flex-1 flex items-center justify-center relative z-10 px-6 py-8 md:px-12">
+        <div className="w-full max-w-2xl text-center">
+          {/* Eyebrow label */}
           <motion.div
-            className="absolute top-1/4 right-1/4 md:right-1/3 w-40 md:w-64 h-40 md:h-64 rounded-full bg-white/[0.03]"
-            animate={{ y: [0, -15, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-
-        <div className="relative z-10 text-center w-full max-w-4xl mx-auto">
-          {/* Badge */}
-          <motion.div
-            className="inline-flex items-center gap-1.5 md:gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 md:px-5 md:py-2 mb-6 md:mb-8"
-            initial={{ opacity: 0, y: 20 }}
+            className="mb-5 md:mb-6"
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="text-base md:text-xl">⚡</span>
-            <span className="text-white/90 text-xs md:text-sm font-semibold tracking-wide uppercase">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pb-teal/10 border border-pb-teal/20 text-pb-teal text-sm font-medium">
+              <span className="w-2 h-2 rounded-full bg-pb-teal animate-pulse" />
               Interaktive KI-Erfahrung
             </span>
           </motion.div>
 
-          {/* Heading */}
+          {/* Main heading */}
           <motion.h1
-            className="rm-heading-1 text-white mb-4 md:mb-6"
-            initial={{ opacity: 0, y: 30 }}
+            className="pb-display-xl text-pb-white mb-5 md:mb-6"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Entdecke deine
-            <br />
-            <span className="text-white/90">Superkraft</span>
+            Entdecke deine{" "}
+            <span className="bg-gradient-to-r from-pb-teal to-pb-blue-light bg-clip-text text-transparent">
+              Superkraft
+            </span>
           </motion.h1>
 
           {/* Subheading */}
           <motion.p
-            className="rm-body-lg text-white/75 max-w-md md:max-w-2xl mx-auto mb-8 md:mb-12 px-2"
-            initial={{ opacity: 0, y: 20 }}
+            className="pb-body-lg text-pb-sand-dim max-w-md mx-auto mb-10 md:mb-12"
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
           >
-            Mach ein Foto, wähle deine Superkraft und lass unsere KI dein Bild
-            in etwas Magisches verwandeln!
+            Mach ein Foto, wähle deine Kraft und lass
+            unsere KI dich verwandeln.
           </motion.p>
 
-          {/* CTA Button */}
+          {/* CTA */}
           <motion.div
-            className="flex justify-center"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             <motion.button
               onClick={onStart}
-              className="rm-btn rm-btn-primary text-base md:text-lg px-8 md:px-10 py-3.5 md:py-4"
-              whileHover={{ scale: 1.03 }}
+              className="pb-btn pb-btn-primary text-lg md:text-xl px-10 md:px-14 py-4 md:py-5 shadow-lg"
+              whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
             >
               Los geht&apos;s
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
             </motion.button>
           </motion.div>
 
-          {/* Steps preview – hidden on very small screens, compact on mobile */}
+          {/* Step indicators */}
           <motion.div
-            className="mt-10 md:mt-16 flex items-center justify-center gap-2 md:gap-3 text-white/40 text-xs md:text-sm font-medium"
+            className="mt-14 md:mt-20 flex items-center justify-center gap-8 text-pb-sand-dim"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <span className="flex items-center gap-1 md:gap-1.5">
-              <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] md:text-xs text-white/60">1</span>
-              <span className="hidden xs:inline">Registrieren</span>
-              <span className="xs:hidden">Start</span>
-            </span>
-            <span className="w-4 md:w-8 h-px bg-white/20" />
-            <span className="flex items-center gap-1 md:gap-1.5">
-              <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] md:text-xs text-white/60">2</span>
-              Foto
-            </span>
-            <span className="w-4 md:w-8 h-px bg-white/20" />
-            <span className="flex items-center gap-1 md:gap-1.5">
-              <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] md:text-xs text-white/60">3</span>
-              <span className="hidden xs:inline">Superkraft!</span>
-              <span className="xs:hidden">Magie</span>
-            </span>
+            {[
+              { num: "01", label: "Superkraft", icon: "⚡" },
+              { num: "02", label: "Foto", icon: "📸" },
+              { num: "03", label: "Magie", icon: "✨" },
+            ].map((step, i) => (
+              <div key={step.label} className="flex flex-col items-center gap-1.5">
+                <span className="text-lg">{step.icon}</span>
+                <span className="text-xs font-medium text-pb-sand-dim/50">{step.label}</span>
+                {i < 2 && (
+                  <div className="absolute" style={{ display: "none" }} />
+                )}
+              </div>
+            ))}
           </motion.div>
         </div>
       </div>
 
-      {/* Footer strip */}
-      <div className="bg-rm-blue-dark py-2.5 md:py-3 px-4 md:px-6 text-center rm-safe-bottom">
-        <p className="text-white/30 text-[10px] md:text-xs font-medium">
+      {/* Footer */}
+      <div className="relative z-10 py-3 px-6 border-t border-white/5">
+        <p className="text-pb-sand-dim/30 text-center text-xs">
           &copy; {new Date().getFullYear()} RecyclingMonitor
         </p>
       </div>

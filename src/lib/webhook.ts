@@ -4,19 +4,22 @@ const N8N_BASE_URL = process.env.NEXT_PUBLIC_N8N_URL || "http://localhost:5678";
 const PROCESS_WEBHOOK = `${N8N_BASE_URL}/webhook/photo-booth/process`;
 const CONFIRM_WEBHOOK = `${N8N_BASE_URL}/webhook/photo-booth/confirm`;
 
+/**
+ * Send photo for AI processing via n8n → OpenRouter/Gemini.
+ * The n8n workflow now returns the processed image synchronously
+ * (no more polling — OpenRouter responds inline).
+ */
 export async function sendProcessWebhook(
   data: SessionData
 ): Promise<{ success: boolean; session_id?: string; processed_photo?: string; error?: string }> {
   try {
     const formData = new FormData();
-
     formData.append("email", data.email);
     formData.append("superpower", data.superpower);
     formData.append("industry", data.industry);
     formData.append("privacy_accepted", String(data.privacy_accepted));
     formData.append("session_id", data.session_id);
 
-    // Convert base64 photo to blob and append
     if (data.photo) {
       const photoBlob = base64ToBlob(data.photo, "image/png");
       formData.append("photo", photoBlob, "photo.png");
@@ -35,17 +38,23 @@ export async function sendProcessWebhook(
       };
     }
 
-    // Check if response is binary (processed image) or JSON
-    const contentType = response.headers.get("content-type");
-    if (contentType?.includes("image") || contentType?.includes("octet-stream")) {
-      const blob = await response.blob();
-      const base64 = await blobToBase64(blob);
-      const sessionId = response.headers.get("X-Session-ID") || data.session_id;
-      return { success: true, session_id: sessionId, processed_photo: base64 };
+    const responseText = await response.text();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: any;
+    try {
+      result = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      // Non-JSON response — treat as success if status was OK
+      result = { success: true };
     }
 
-    const result = await response.json();
-    return { success: true, session_id: result.session_id || data.session_id };
+    // n8n returns { success, session_id, processed_photo } directly
+    return {
+      success: result.success ?? true,
+      session_id: result.session_id || data.session_id,
+      processed_photo: result.processed_photo,
+      error: result.error,
+    };
   } catch (error) {
     console.error("Webhook-Fehler:", error);
     return {
@@ -60,19 +69,26 @@ export async function sendConfirmWebhook(
   action: "confirm" | "retake"
 ): Promise<WebhookConfirmResponse> {
   try {
+    const formData = new FormData();
+    formData.append("action", action);
+    formData.append("email", data.email);
+    formData.append("session_id", data.session_id);
+    formData.append("superpower", data.superpower);
+    formData.append("industry", data.industry);
+    formData.append("print_photo", String(data.print_photo ?? true));
+    if (data.pipedrive_person_id) {
+      formData.append("pipedrive_person_id", String(data.pipedrive_person_id));
+    }
+
+    // Send the processed photo as binary blob
+    if (data.processed_photo) {
+      const photoBlob = base64ToBlob(data.processed_photo, "image/png");
+      formData.append("photo", photoBlob, "processed_photo.png");
+    }
+
     const response = await fetch(CONFIRM_WEBHOOK, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action,
-        email: data.email,
-        session_id: data.session_id,
-        superpower: data.superpower,
-        industry: data.industry,
-        photo_url: data.processed_photo ? "embedded" : undefined,
-        pipedrive_person_id: data.pipedrive_person_id,
-        print_photo: data.print_photo ?? true,
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
@@ -104,13 +120,4 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
   }
   const byteArray = new Uint8Array(byteNumbers);
   return new Blob([byteArray], { type: mimeType });
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
 }
