@@ -25,8 +25,7 @@ export default function ContactForm({ onSubmit }: Props) {
 
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
-    if (!email) newErrors.email = "E-Mail-Adresse ist erforderlich";
-    else if (!validateEmail(email))
+    if (email && !validateEmail(email))
       newErrors.email = "Bitte gib eine gültige E-Mail-Adresse ein";
     if (!privacyAccepted)
       newErrors.privacy = "Bitte akzeptiere die Datenschutzerklärung";
@@ -82,7 +81,7 @@ export default function ContactForm({ onSubmit }: Props) {
           >
             <h2 className="pb-display-md text-pb-white mb-2">Fast geschafft!</h2>
             <p className="pb-body-lg text-pb-sand-dim/70 mb-8 md:mb-10">
-              Gib deine Daten ein, um dein Superkraft-Foto per E-Mail zu erhalten.
+              Optional: Gib deine E-Mail ein, um dein Superhelden-Foto auch digital zu erhalten.
             </p>
           </motion.div>
 
@@ -94,7 +93,7 @@ export default function ContactForm({ onSubmit }: Props) {
             transition={{ duration: 0.4, delay: 0.05 }}
           >
             <label className="pb-label text-pb-sand-dim block mb-2">
-              E-Mail-Adresse
+              E-Mail-Adresse <span className="text-pb-sand-dim/40">(optional)</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-pb-sand-dim/40" />

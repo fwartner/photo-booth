@@ -5,7 +5,7 @@ import { CheckCircle, Mail, Printer, RefreshCw } from "lucide-react";
 import { Heldentyp, HELDENTYPEN } from "@/lib/types";
 
 interface Props {
-  email: string;
+  email?: string;
   superpower: Heldentyp;
   printPhoto: boolean;
   onRestart: () => void;
@@ -79,21 +79,23 @@ export default function ConfirmedView({ email, superpower, printPhoto, onRestart
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
           >
-            <div className="bg-pb-charcoal border border-white/6 rounded-xl p-3.5 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-pb-teal/10 flex items-center justify-center flex-shrink-0">
-                <Mail className="w-4 h-4 text-pb-teal/70" />
+            {email && (
+              <div className="bg-pb-charcoal border border-white/6 rounded-xl p-3.5 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-pb-teal/10 flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-4 h-4 text-pb-teal/70" />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-pb-sand font-semibold text-xs">E-Mail wird gesendet</p>
+                  <p className="text-pb-sand-dim/40 text-[11px] truncate pb-mono">An {email}</p>
+                </div>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: 3, ease: "linear" }}
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-pb-sand-dim/20" />
+                </motion.div>
               </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-pb-sand font-semibold text-xs">E-Mail wird gesendet</p>
-                <p className="text-pb-sand-dim/40 text-[11px] truncate pb-mono">An {email}</p>
-              </div>
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: 3, ease: "linear" }}
-              >
-                <RefreshCw className="w-3.5 h-3.5 text-pb-sand-dim/20" />
-              </motion.div>
-            </div>
+            )}
 
             {printPhoto && (
               <div className="bg-pb-charcoal border border-white/6 rounded-xl p-3.5 flex items-center gap-3">

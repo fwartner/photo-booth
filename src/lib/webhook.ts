@@ -19,7 +19,7 @@ export async function sendProcessWebhook(
     formData.append("mode", data.mode);
     formData.append("personenanzahl", String(data.personenanzahl));
     formData.append("session_id", data.session_id);
-    formData.append("email", data.email);
+    if (data.email) formData.append("email", data.email);
     formData.append("privacy_accepted", String(data.privacy_accepted));
 
     if (data.firmenname) {
@@ -75,7 +75,7 @@ export async function sendConfirmWebhook(
   try {
     const formData = new FormData();
     formData.append("action", action);
-    formData.append("email", data.email);
+    if (data.email) formData.append("email", data.email);
     formData.append("session_id", data.session_id);
     formData.append("heldentyp", data.heldentyp);
     formData.append("kategorie", data.kategorie);

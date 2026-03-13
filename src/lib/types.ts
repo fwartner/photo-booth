@@ -10,7 +10,7 @@ export type Kategorie =
   | "wertstoffhof"
   | "technologieanbieter";
 
-export type Stilmodus = "professional" | "extreme";
+export type Stilmodus = "comic" | "extreme";
 
 export type AppStep =
   | "start"
@@ -35,7 +35,7 @@ export interface SessionData {
   mode: Stilmodus;
   personenanzahl: number;
   firmenname?: string;
-  email: string;
+  email?: string;
   privacy_accepted: boolean;
   session_id: string;
   photo?: string;

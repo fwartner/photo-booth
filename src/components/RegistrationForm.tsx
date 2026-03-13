@@ -21,7 +21,7 @@ interface Props {
 export default function RegistrationForm({ onSubmit, onBack }: Props) {
   const [heldentyp, setHeldentyp] = useState<Heldentyp | "">("");
   const [kategorie, setKategorie] = useState<Kategorie | "">("");
-  const [mode, setMode] = useState<Stilmodus>("professional");
+  const [mode, setMode] = useState<Stilmodus>("comic");
   const [personenanzahl, setPersonenanzahl] = useState(1);
   const [firmenname, setFirmenname] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -188,16 +188,16 @@ export default function RegistrationForm({ onSubmit, onBack }: Props) {
             <label className="pb-label text-pb-sand-dim block mb-2">Stilmodus</label>
             <div className="flex gap-2">
               <button
-                onClick={() => setMode("professional")}
+                onClick={() => setMode("comic")}
                 className={`flex-1 py-3 px-4 rounded-xl border text-sm font-medium transition-all ${
-                  mode === "professional"
+                  mode === "comic"
                     ? "bg-pb-teal/15 border-pb-teal/40 text-pb-teal"
                     : "bg-white/3 border-white/10 text-pb-sand-dim/60 hover:border-white/20"
                 }`}
               >
-                <span className="block text-base mb-0.5">💼</span>
-                Professional
-                <span className="block text-[10px] opacity-60 mt-0.5">Seriös & LinkedIn-tauglich</span>
+                <span className="block text-base mb-0.5">💥</span>
+                Comic
+                <span className="block text-[10px] opacity-60 mt-0.5">Comic-Style & Action</span>
               </button>
               <button
                 onClick={() => setMode("extreme")}
