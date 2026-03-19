@@ -180,7 +180,7 @@ export default function PhotoBoothApp() {
                 >
                   <p className="font-semibold text-sm">Hinweis</p>
                   <p className="text-xs mt-0.5">
-                    {error} — Originalfoto wird angezeigt.
+                    {error} — Originalfoto wird angezeigt. :D
                   </p>
                 </motion.div>
               )}
