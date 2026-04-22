@@ -5,12 +5,16 @@ Photo Booth Print Agent for Raspberry Pi
 Polls the n8n print job queue for pending jobs, downloads images,
 and prints them via CUPS on the connected photo printer.
 
+Output is always postcard size: 4×6 in @ PRINT_DPI (Canon SELPHY postcard),
+with CUPS media defaulting to Postcard unless overridden.
+
 Usage:
     python3 print_agent.py
 
 Configuration via environment variables or .env file.
 """
 
+import json
 import os
 import sys
 import time
@@ -33,24 +37,30 @@ from dotenv import load_dotenv
 # Load .env file from script directory
 load_dotenv(Path(__file__).parent / ".env")
 
+# Postcard photo print (4×6 in) — fixed; not configurable via env
+POSTCARD_WIDTH_IN = 4
+POSTCARD_HEIGHT_IN = 6
+
 # --- Configuration ---
 N8N_URL = os.getenv("N8N_URL", "http://localhost:5678")
 API_KEY = os.getenv("API_KEY", "changeme-print-secret")
 PRINTER_NAME = os.getenv("PRINTER_NAME", "auto")
-PRINT_SIZE = os.getenv("PRINT_SIZE", "4x6")  # inches
 PRINT_DPI = int(os.getenv("PRINT_DPI", "300"))
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "5"))
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+CUPS_PRINT_QUALITY = os.getenv("CUPS_PRINT_QUALITY", "5")
+CUPS_COLOR_MODE = os.getenv("CUPS_COLOR_MODE", "color")
+CUPS_OPTIONS_JSON = os.getenv("CUPS_OPTIONS_JSON", "").strip()
+CUPS_OPTIONS = os.getenv("CUPS_OPTIONS", "").strip()
 
 # Endpoints
 POLL_URL = f"{N8N_URL}/webhook/photo-booth/print-jobs"
 DONE_URL = f"{N8N_URL}/webhook/photo-booth/print-done"
 
-# Parse print size
-PRINT_WIDTH_IN, PRINT_HEIGHT_IN = map(int, PRINT_SIZE.split("x"))
-PRINT_WIDTH_PX = PRINT_WIDTH_IN * PRINT_DPI
-PRINT_HEIGHT_PX = PRINT_HEIGHT_IN * PRINT_DPI
+# Canvas pixel size (postcard 4×6 in)
+PRINT_WIDTH_PX = POSTCARD_WIDTH_IN * PRINT_DPI
+PRINT_HEIGHT_PX = POSTCARD_HEIGHT_IN * PRINT_DPI
 
 # --- Logging ---
 logging.basicConfig(
@@ -62,6 +72,52 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger("print_agent")
+
+
+def build_cups_job_options():
+    """
+    Build option dict for pycups printFile. Defaults target postcard / 4×6.
+
+    CUPS_MEDIA: if unset, use \"Postcard\". If set to empty string, omit
+    \"media\" so only JSON/kv options apply. Override via CUPS_OPTIONS_JSON
+    or CUPS_OPTIONS (e.g. PageSize for some PPDs).
+    """
+    opts = {}
+
+    if "CUPS_MEDIA" in os.environ:
+        media = os.environ["CUPS_MEDIA"].strip()
+        if media:
+            opts["media"] = media
+    else:
+        opts["media"] = "Postcard"
+
+    if CUPS_PRINT_QUALITY:
+        opts["print-quality"] = CUPS_PRINT_QUALITY
+    if CUPS_COLOR_MODE:
+        opts["print-color-mode"] = CUPS_COLOR_MODE
+
+    if CUPS_OPTIONS_JSON:
+        try:
+            extra = json.loads(CUPS_OPTIONS_JSON)
+            if not isinstance(extra, dict):
+                log.error("CUPS_OPTIONS_JSON must be a JSON object")
+            else:
+                opts.update({str(k): str(v) for k, v in extra.items()})
+        except json.JSONDecodeError as e:
+            log.error(f"CUPS_OPTIONS_JSON parse error: {e}")
+
+    if CUPS_OPTIONS:
+        for part in CUPS_OPTIONS.split(","):
+            part = part.strip()
+            if not part or "=" not in part:
+                continue
+            key, _, val = part.partition("=")
+            key = key.strip()
+            val = val.strip()
+            if key:
+                opts[key] = val
+
+    return opts
 
 
 def get_printer():
@@ -191,20 +247,21 @@ def prepare_for_print(image_path):
 def send_to_printer(image_path, printer_name):
     """Send image to CUPS printer."""
     if DRY_RUN or not CUPS_AVAILABLE:
-        log.info(f"[DRY RUN] Would print: {image_path} on {printer_name}")
+        log.info(
+            f"[DRY RUN] Would print: {image_path} on {printer_name} "
+            f"options={build_cups_job_options()}"
+        )
         return True
 
     try:
         conn = cups.Connection()
+        cup_opts = build_cups_job_options()
+        log.info(f"CUPS job options: {cup_opts}")
         job_id = conn.printFile(
             printer_name,
             image_path,
             "Photo Booth Print",
-            {
-                "media": "4x6",
-                "print-quality": "5",  # High quality
-                "print-color-mode": "color",
-            },
+            cup_opts,
         )
         log.info(f"Print job submitted: CUPS job #{job_id}")
         return True
@@ -292,7 +349,11 @@ def main():
     log.info("Photo Booth Print Agent starting...")
     log.info(f"  n8n URL:      {N8N_URL}")
     log.info(f"  Poll interval: {POLL_INTERVAL}s")
-    log.info(f"  Print size:    {PRINT_SIZE} @ {PRINT_DPI}dpi")
+    log.info(
+        f"  Postcard:      {POSTCARD_WIDTH_IN}x{POSTCARD_HEIGHT_IN} in @ {PRINT_DPI}dpi "
+        f"({PRINT_WIDTH_PX}x{PRINT_HEIGHT_PX}px)"
+    )
+    log.info(f"  CUPS media:    {build_cups_job_options().get('media', '(none)')}")
     log.info(f"  Dry run:       {DRY_RUN}")
     log.info("=" * 60)
 

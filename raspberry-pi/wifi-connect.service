@@ -1,0 +1,18 @@
+[Unit]
+Description=WiFi Connect captive portal when no network (Balena wifi-connect)
+Documentation=https://github.com/balena-os/wifi-connect
+After=NetworkManager.service dbus.socket
+Wants=NetworkManager.service
+Before=network-online.target NetworkManager-wait-online.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/wifi-connect
+# Absolute UI path (Balena default is relative "ui")
+ExecStart=/usr/local/sbin/wifi-connect -u ${UI_DIRECTORY}
+Restart=no
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

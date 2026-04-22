@@ -1,7 +1,8 @@
 [Unit]
 Description=Photo Booth Print Agent
-After=network-online.target cups.service
+After=network-online.target cups.socket cups.service
 Wants=network-online.target
+Requires=cups.service
 
 [Service]
 Type=simple

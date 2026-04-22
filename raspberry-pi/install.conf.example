@@ -1,0 +1,12 @@
+# Optional: copy to install.conf in this directory and adjust.
+# Sourced by install.sh.
+
+# Linux user that owns the agent directory and runs the print service
+BOOTH_USER=pi
+
+# Override install path (default shown)
+# PRINT_INSTALL_DIR=/home/pi/print-agent
+
+# Captive WiFi (Balena wifi-connect) is NOT run by install.sh.
+# On the Pi, from this directory: sudo ./install-wifi-connect.sh
+# Optional: export WFC_VERSION=v4.11.84 to pin a different release.
