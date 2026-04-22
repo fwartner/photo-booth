@@ -1,8 +1,23 @@
 import { SessionData, WebhookConfirmResponse } from "./types";
 
-const N8N_BASE_URL = process.env.NEXT_PUBLIC_N8N_URL || "http://localhost:5678";
-const PROCESS_WEBHOOK = `${N8N_BASE_URL}/webhook/photo-booth/process`;
-const CONFIRM_WEBHOOK = `${N8N_BASE_URL}/webhook/photo-booth/confirm`;
+/** Production n8n; override with NEXT_PUBLIC_N8N_URL for local workflows. */
+const DEFAULT_N8N_BASE = "https://n8n.pixelandprocess.de";
+
+function n8nBaseUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_N8N_URL || DEFAULT_N8N_BASE;
+  return raw.replace(/\/+$/, "");
+}
+
+const N8N_BASE_URL = n8nBaseUrl();
+
+/** Image processing: https://n8n.pixelandprocess.de/webhook/photo-booth/process */
+const PROCESS_WEBHOOK =
+  process.env.NEXT_PUBLIC_N8N_PROCESS_WEBHOOK ||
+  `${N8N_BASE_URL}/webhook/photo-booth/process`;
+
+const CONFIRM_WEBHOOK =
+  process.env.NEXT_PUBLIC_N8N_CONFIRM_WEBHOOK ||
+  `${N8N_BASE_URL}/webhook/photo-booth/confirm`;
 
 /**
  * Send photo for AI processing via n8n.
