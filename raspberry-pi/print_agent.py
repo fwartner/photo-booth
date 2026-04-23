@@ -5,8 +5,9 @@ Photo Booth Print Agent for Raspberry Pi
 Polls the n8n print job queue for pending jobs, downloads images,
 and prints them via CUPS on the connected photo printer.
 
-Output is always postcard size: 4×6 in @ PRINT_DPI (Canon SELPHY postcard),
-with CUPS media defaulting to Postcard unless overridden.
+Output is always postcard size: 4×6 in (Canon SELPHY postcard), rendered from
+an HTML template via WeasyPrint — reserved logo band on the top 1/4, photo
+on the bottom 3/4. CUPS media defaults to Postcard unless overridden.
 
 Usage:
     python3 print_agent.py
@@ -14,6 +15,7 @@ Usage:
 Configuration via environment variables or .env file.
 """
 
+import base64
 import json
 import os
 import sys
@@ -23,7 +25,7 @@ import tempfile
 from pathlib import Path
 
 import requests
-from PIL import Image
+from weasyprint import HTML
 
 # Optional: CUPS (only required when actually printing)
 try:
@@ -45,7 +47,6 @@ POSTCARD_HEIGHT_IN = 6
 N8N_URL = os.getenv("N8N_URL", "http://localhost:5678")
 API_KEY = os.getenv("API_KEY", "changeme-print-secret")
 PRINTER_NAME = os.getenv("PRINTER_NAME", "auto")
-PRINT_DPI = int(os.getenv("PRINT_DPI", "300"))
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "5"))
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -58,9 +59,8 @@ CUPS_OPTIONS = os.getenv("CUPS_OPTIONS", "").strip()
 POLL_URL = f"{N8N_URL}/webhook/photo-booth/print-jobs"
 DONE_URL = f"{N8N_URL}/webhook/photo-booth/print-done"
 
-# Canvas pixel size (postcard 4×6 in)
-PRINT_WIDTH_PX = POSTCARD_WIDTH_IN * PRINT_DPI
-PRINT_HEIGHT_PX = POSTCARD_HEIGHT_IN * PRINT_DPI
+# Photo occupies the bottom of the postcard; the top strip is reserved for logos.
+PHOTO_HEIGHT_FRACTION = 0.82
 
 # --- Logging ---
 logging.basicConfig(
@@ -208,35 +208,79 @@ def download_image(image_url):
         return None
 
 
+PRINT_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {{ size: {w}in {h}in; margin: 0; }}
+    html, body {{
+      margin: 0; padding: 0;
+      width: {w}in; height: {h}in;
+      background: #ffffff;
+    }}
+    .postcard {{
+      display: flex;
+      flex-direction: column;
+      width: 100%; height: 100%;
+    }}
+    .logos {{
+      width: 100%;
+      height: {logos_pct}%;
+      box-sizing: border-box;
+      /* Reserved for logos — content added later. */
+    }}
+    .photo {{
+      width: 100%;
+      height: {photo_pct}%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.15in;
+      box-sizing: border-box;
+    }}
+    .photo img {{
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }}
+  </style>
+</head>
+<body>
+  <div class="postcard">
+    <div class="logos"></div>
+    <div class="photo"><img src="{img_src}" /></div>
+  </div>
+</body>
+</html>"""
+
+
 def prepare_for_print(image_path):
-    """Resize and format image for photo printing."""
+    """Render an HTML postcard (white frame, logo strip top 1/4, photo bottom 3/4) to PDF."""
     try:
-        img = Image.open(image_path)
-        log.info(f"Original image: {img.size[0]}x{img.size[1]} {img.mode}")
+        with open(image_path, "rb") as f:
+            img_bytes = f.read()
 
-        # Convert to RGB if needed (e.g., RGBA PNGs)
-        if img.mode in ("RGBA", "P"):
-            background = Image.new("RGB", img.size, (255, 255, 255))
-            if img.mode == "RGBA":
-                background.paste(img, mask=img.split()[3])
-            else:
-                background.paste(img)
-            img = background
+        mime = "image/jpeg" if image_path.lower().endswith((".jpg", ".jpeg")) else "image/png"
+        img_src = f"data:{mime};base64,{base64.b64encode(img_bytes).decode()}"
 
-        # Resize to fit print dimensions while maintaining aspect ratio
-        img.thumbnail((PRINT_WIDTH_PX, PRINT_HEIGHT_PX), Image.LANCZOS)
+        photo_pct = PHOTO_HEIGHT_FRACTION * 100
+        html_content = PRINT_HTML_TEMPLATE.format(
+            w=POSTCARD_WIDTH_IN,
+            h=POSTCARD_HEIGHT_IN,
+            photo_pct=photo_pct,
+            logos_pct=100 - photo_pct,
+            img_src=img_src,
+        )
 
-        # Create a white canvas at exact print size and center the image
-        canvas = Image.new("RGB", (PRINT_WIDTH_PX, PRINT_HEIGHT_PX), (255, 255, 255))
-        x_offset = (PRINT_WIDTH_PX - img.size[0]) // 2
-        y_offset = (PRINT_HEIGHT_PX - img.size[1]) // 2
-        canvas.paste(img, (x_offset, y_offset))
+        print_path = image_path.rsplit(".", 1)[0] + "_print.pdf"
+        HTML(string=html_content).write_pdf(print_path)
 
-        # Save as high-quality JPEG for printing
-        print_path = image_path.rsplit(".", 1)[0] + "_print.jpg"
-        canvas.save(print_path, "JPEG", quality=95, dpi=(PRINT_DPI, PRINT_DPI))
-
-        log.info(f"Prepared print image: {PRINT_WIDTH_PX}x{PRINT_HEIGHT_PX} @ {PRINT_DPI}dpi")
+        log.info(
+            f"Prepared print PDF: {POSTCARD_WIDTH_IN}x{POSTCARD_HEIGHT_IN} in, "
+            f"logos {int(100 - photo_pct)}% top / photo {int(photo_pct)}% bottom"
+        )
         return print_path
 
     except Exception as e:
@@ -350,8 +394,8 @@ def main():
     log.info(f"  n8n URL:      {N8N_URL}")
     log.info(f"  Poll interval: {POLL_INTERVAL}s")
     log.info(
-        f"  Postcard:      {POSTCARD_WIDTH_IN}x{POSTCARD_HEIGHT_IN} in @ {PRINT_DPI}dpi "
-        f"({PRINT_WIDTH_PX}x{PRINT_HEIGHT_PX}px)"
+        f"  Postcard:      {POSTCARD_WIDTH_IN}x{POSTCARD_HEIGHT_IN} in "
+        f"(logos {int((1 - PHOTO_HEIGHT_FRACTION) * 100)}% top / photo {int(PHOTO_HEIGHT_FRACTION * 100)}% bottom)"
     )
     log.info(f"  CUPS media:    {build_cups_job_options().get('media', '(none)')}")
     log.info(f"  Dry run:       {DRY_RUN}")

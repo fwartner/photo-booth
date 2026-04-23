@@ -22,7 +22,9 @@ sudo apt-get install -y -qq \
     cups libcups2-dev \
     printer-driver-gutenprint \
     usbutils \
-    libjpeg-dev libpng-dev
+    libjpeg-dev libpng-dev \
+    libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 \
+    libffi-dev shared-mime-info fonts-dejavu
 
 echo "[2/5] Configuring CUPS (Canon Selphy CP1300: add via http://localhost:631, USB, Gutenprint)..."
 sudo systemctl enable cups
