@@ -4,11 +4,11 @@ Single systemd service: **print-agent** polls **n8n** for jobs and prints via **
 
 Images are always prepared as **postcard 4×6 in** via WeasyPrint. CUPS uses **media=Postcard** (fixed in `print_agent.py`); use `lpoptions -p QUEUE -l` and edit `CUPS_OPTIONS_JSON` / `CUPS_OPTIONS` in that file if your PPD needs different option names.
 
-## Updates via SD card (automatic on boot)
+## Updates via SD card (automatic on boot, **no SSH**)
 
-To refresh the booth **without SSH**: copy the contents of this folder into **`photo-booth-deploy/`** on the SD card’s boot partition (same place as `config.txt`), then reboot. After a **one-time** registration on the Pi, each boot syncs that folder, runs `install.sh`, and restarts the agent.
+Operators only need the **physical SD card** and a PC — see **[README-SD-CARD.md](README-SD-CARD.md)** (Windows **`append-cmdline.ps1`**, manual paste, or Mac/Linux **`append-cmdline.sh`**). After a one-time **`cmdline.txt`** patch, updates are: refresh **`photo-booth-deploy/`** on the boot partition → reboot.
 
-See **[README-SD-CARD.md](README-SD-CARD.md)** for paths, the one-time `install-bootstrap-to-system.sh` step, and an optional Raspberry Pi Imager “first boot” snippet.
+If you **do** have shell access on the Pi, **`install.sh`** registers bootstrap on step **[6/6]** when the unit is missing.
 
 ## Install
 

@@ -15,7 +15,7 @@ echo "  User: $BOOTH_USER"
 echo "  Dir:  $PRINT_INSTALL_DIR"
 echo ""
 
-echo "[1/5] Installing system packages..."
+echo "[1/6] Installing system packages..."
 sudo apt-get update -qq
 sudo apt-get install -y -qq \
     python3 python3-venv python3-pip \
@@ -27,27 +27,27 @@ sudo apt-get install -y -qq \
     libffi-dev shared-mime-info fonts-dejavu \
     feh
 
-echo "[2/5] Configuring CUPS (Canon Selphy CP1300: add via http://localhost:631, USB, Gutenprint)..."
+echo "[2/6] Configuring CUPS (Canon Selphy CP1300: add via http://localhost:631, USB, Gutenprint)..."
 sudo systemctl enable cups
 sudo systemctl start cups
 sudo usermod -a -G lpadmin "$BOOTH_USER" 2>/dev/null || true
 sudo usermod -a -G lp "$BOOTH_USER" 2>/dev/null || true
 
-echo "[3/5] Setting up application..."
+echo "[3/6] Setting up application..."
 mkdir -p "$PRINT_INSTALL_DIR"
 cp "$SCRIPT_DIR/print_agent.py" "$PRINT_INSTALL_DIR/"
 cp "$SCRIPT_DIR/requirements.txt" "$PRINT_INSTALL_DIR/"
 mkdir -p "$PRINT_INSTALL_DIR/assets"
 cp -r "$SCRIPT_DIR/assets/." "$PRINT_INSTALL_DIR/assets/"
 
-echo "[4/5] Installing Python dependencies..."
+echo "[4/6] Installing Python dependencies..."
 if [[ ! -x "$PRINT_INSTALL_DIR/venv/bin/python3" ]]; then
   python3 -m venv "$PRINT_INSTALL_DIR/venv"
 fi
 "$PRINT_INSTALL_DIR/venv/bin/pip" install --quiet --upgrade pip
 "$PRINT_INSTALL_DIR/venv/bin/pip" install --quiet -r "$PRINT_INSTALL_DIR/requirements.txt"
 
-echo "[5/5] Installing systemd service..."
+echo "[5/6] Installing systemd service..."
 SERVICE_TMP=$(mktemp)
 sed \
   -e "s|^User=.*|User=$BOOTH_USER|" \
@@ -59,6 +59,12 @@ sudo cp "$SERVICE_TMP" /etc/systemd/system/print-agent.service
 rm -f "$SERVICE_TMP"
 sudo systemctl daemon-reload
 sudo systemctl enable print-agent
+
+if [[ -f "$SCRIPT_DIR/install-bootstrap-to-system.sh" ]] && [[ ! -f /etc/systemd/system/photo-booth-bootstrap.service ]]; then
+  echo ""
+  echo "[6/6] Enabling SD card boot sync (photo-booth-bootstrap)..."
+  sudo "$SCRIPT_DIR/install-bootstrap-to-system.sh"
+fi
 
 echo ""
 echo "=== Installation complete ==="

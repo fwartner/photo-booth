@@ -1,0 +1,1 @@
+ systemd.run=/bin/bash /boot/firmware/photo-booth-deploy/pi-sd-early-provision.sh

@@ -1,10 +1,21 @@
-# SD card deploy — automatic boot sync
+# SD card only — **no SSH**
 
-The print agent can pull updates from the **FAT32 boot partition** of the SD card (the one visible as `bootfs` when you plug the card into a laptop). After a **one-time** setup on the Pi, every reboot applies whatever you copied there.
+The field operator has **physical access to the SD card** and a **PC** (Windows / Mac / Linux). They **do not** log into the Pi over the network. Everything is prepared by **editing the FAT32 boot partition** while the card is in a USB reader, then booting the Pi.
 
-## Folder layout on the boot partition
+You only need:
 
-Create this directory **next to** `config.txt` (Raspberry Pi OS Bookworm: `/boot/firmware/` on the running Pi; on Windows/macOS the volume is often named **bootfs**):
+- **Network on the Pi** (Ethernet or Wi‑Fi already configured on that OS image), so `apt` / `pip` can run on first boot.
+- The **`photo-booth-deploy/`** folder on the boot partition kept in sync with the latest `raspberry-pi/` tree from this repo.
+
+---
+
+## One-time setup per SD card (before the Pi is useful)
+
+Do this **on the laptop** with the SD card inserted (boot partition visible — on Windows often named **bootfs**).
+
+### 1) Copy the deploy bundle
+
+Copy **everything** from this repo’s [`raspberry-pi/`](../) folder into a directory on the **boot** partition:
 
 ```text
 photo-booth-deploy/
@@ -12,62 +23,84 @@ photo-booth-deploy/
   print_agent.py
   requirements.txt
   print-agent.service
+  photo-booth-bootstrap.sh
+  photo-booth-bootstrap.service
+  install-bootstrap-to-system.sh
+  pi-sd-early-provision.sh
+  append-cmdline.sh
+  append-cmdline.ps1
+  cmdline-append-this.txt
   assets/
-  … (entire contents of the repo `raspberry-pi/` folder)
+  …
 ```
 
-Copy the whole [`raspberry-pi/`](../) directory contents into `photo-booth-deploy/` — not the parent `pb2/` folder, only the files that belong to the Pi installer.
+(You can copy the whole `raspberry-pi` tree into `photo-booth-deploy/`; extra files are harmless.)
 
-## One-time setup (pick one)
+### 2) Register the boot hook in `cmdline.txt` (pick one)
 
-The systemd unit that runs on every boot must exist on the Linux root filesystem once.
+The Pi only auto-installs from the SD if **one** extra kernel parameter is present. It must be added **on the same line** as the rest of the kernel command line (Raspberry Pi OS uses a **single-line** `cmdline.txt`).
 
-### A. On the Pi (SSH or keyboard)
+**Option A — Windows (easiest)**  
 
-With the deploy folder already copied under `/boot/firmware/photo-booth-deploy/`:
+The **`append-cmdline.ps1`** script is included inside **`photo-booth-deploy/`** when you copy the full `raspberry-pi/` tree — you do **not** need SSH or the repo checkout on the PC.
+
+1. Open **`photo-booth-deploy`** on the boot partition in Explorer.  
+2. Right-click **`append-cmdline.ps1`** → **Run with PowerShell**.  
+   The script finds **`cmdline.txt`** on the partition (one folder up) and appends **`cmdline-append-this.txt`**.  
+   If Windows blocks execution: open PowerShell **in `photo-booth-deploy`**:  
+   `powershell -ExecutionPolicy Bypass -File .\append-cmdline.ps1`  
+3. Idempotent: safe to run twice.
+
+**Option B — Manual (any OS, no scripts)**  
+
+1. Open **`cmdline.txt`** in a text editor. It is **one long line**.  
+2. Open **`cmdline-append-this.txt`**, select **all** text, copy.  
+3. In **`cmdline.txt`**, move the cursor to the **very end** of that same line (do **not** create a new line).  
+4. Paste. Save.  
+5. The pasted text must start with a **space** and must include `pi-sd-early-provision`.
+
+**Option C — Mac / Linux (terminal)**  
+
+From a clone of this repo:
 
 ```bash
-sudo /boot/firmware/photo-booth-deploy/install-bootstrap-to-system.sh
+./append-cmdline.sh /Volumes/bootfs
+# or e.g. /run/media/$USER/bootfs
 ```
 
-### B. Raspberry Pi Imager — “Run script on first boot”
+### 3) Eject and boot
 
-Paste a script that only runs the installer if the folder exists:
+First boot can take **several minutes** (`apt`, `pip`, WeasyPrint stack). The Pi must reach the network for that first install.
 
-```bash
-#!/bin/bash
-set -e
-if [ -x /boot/firmware/photo-booth-deploy/install-bootstrap-to-system.sh ]; then
-  /boot/firmware/photo-booth-deploy/install-bootstrap-to-system.sh
-fi
-```
+---
 
-Flash the card, boot once; afterwards only refreshing `photo-booth-deploy/` on the FAT partition and rebooting is enough.
+## Later updates (operator workflow — still **no SSH**)
 
-### C. Golden image
+1. Mount the SD card on the PC.  
+2. Overwrite **`photo-booth-deploy/`** with the new `raspberry-pi/` files.  
+3. **Do not** change `cmdline.txt` again unless we document a new kernel parameter.  
+4. Eject, boot the Pi. **`photo-booth-bootstrap`** runs on boot, syncs, runs **`install.sh`**, restarts **`print-agent`**.
 
-Include `/etc/systemd/system/photo-booth-bootstrap.service` and `/usr/local/sbin/photo-booth-bootstrap.sh` in your prebuilt image (same as running option A once).
+---
 
-## Day-to-day workflow (your colleague)
+## How it works (short)
 
-1. Copy the latest `raspberry-pi/` files into `photo-booth-deploy/` on the **boot** partition (replace existing files).
-2. Safely eject, put the SD card in the Pi, power on.
-3. On boot, `photo-booth-bootstrap.service` rsyncs that folder to `/var/lib/photo-booth-deploy/current`, runs `install.sh`, and restarts `print-agent`.
+- **`systemd.run=…pi-sd-early-provision.sh`** (from the cmdline patch) runs very early and installs **`photo-booth-bootstrap.service`** from `photo-booth-deploy/` so **no** manual step on the Pi.  
+- Each boot, **`photo-booth-bootstrap`** rsyncs from `/boot/firmware/photo-booth-deploy/`, runs **`install.sh`**, and refreshes the bootstrap scripts from the SD card.
 
-Check logs if something fails:
+---
 
-```bash
-journalctl -u photo-booth-bootstrap.service -b --no-pager
-sudo tail -100 /var/log/photo-booth-bootstrap.log
-sudo systemctl status print-agent
-```
+## If something fails (no SSH)
+
+- **HDMI + USB keyboard** on the Pi: local console login (if enabled on the image).  
+- **Fix the SD on the PC:** re-copy `photo-booth-deploy/`, verify **`cmdline.txt`** still contains `pi-sd-early-provision`, fix **`cmdline-append-this`** paste if someone broke the line.  
+- **Serial cable** (advanced): bootloader / systemd logs.
+
+Journal commands (`journalctl`, …) only apply when you **do** have shell access.
+
+---
 
 ## Requirements
 
-- **Network** on first install (or whenever `install.sh` must run `apt-get`). Later boots are faster if packages are already installed.
-- Linux user `pi` (or set `BOOTH_USER` in `install.conf` inside the deploy folder — user must exist).
-- Path detection: `/boot/firmware/photo-booth-deploy` first, then `/boot/photo-booth-deploy`.
-
-## Optional `install.conf`
-
-You can place `install.conf` beside `install.sh` in `photo-booth-deploy/` (see `install.conf.example`). It is read by both `install.sh` and the bootstrap script before `chown`.
+- **Network** on first install (`apt` / `pip`).  
+- User **`pi`** present on the image (default Raspberry Pi OS), or **`install.conf`** in `photo-booth-deploy/` with an existing **`BOOTH_USER`**.

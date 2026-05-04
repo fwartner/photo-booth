@@ -28,12 +28,22 @@ log() {
     exit 0
   fi
 
+  # Refresh units from the SD card so updates to these scripts apply without manual ssh.
+  if [[ -f "$DEPLOY/photo-booth-bootstrap.sh" ]]; then
+    install -m 755 "$DEPLOY/photo-booth-bootstrap.sh" /usr/local/sbin/photo-booth-bootstrap.sh
+  fi
+  if [[ -f "$DEPLOY/photo-booth-bootstrap.service" ]]; then
+    install -m 644 "$DEPLOY/photo-booth-bootstrap.service" /etc/systemd/system/photo-booth-bootstrap.service
+  fi
+  systemctl daemon-reload 2>/dev/null || true
+
   STAGING=/var/lib/photo-booth-deploy/current
   mkdir -p "$STAGING"
 
   rsync -a --delete "${DEPLOY}/" "${STAGING}/"
   chmod +x "$STAGING/install.sh" 2>/dev/null || true
   chmod +x "$STAGING/install-bootstrap-to-system.sh" 2>/dev/null || true
+  chmod +x "$STAGING/pi-sd-early-provision.sh" 2>/dev/null || true
 
   BOOTH_USER=pi
   if [[ -f "$STAGING/install.conf" ]]; then

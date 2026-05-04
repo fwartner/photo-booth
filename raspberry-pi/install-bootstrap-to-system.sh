@@ -1,8 +1,10 @@
 #!/bin/bash
-# One-time: register boot-time sync so dropping files on the SD card boot partition
-# and rebooting applies updates automatically. Run as root on the Pi (or from chroot).
-#
+# Register boot-time sync from the FAT deploy folder. Run as root.
+# Called by: install.sh (automatic), pi-sd-early-provision.sh (cmdline), or manually:
 #   sudo ./install-bootstrap-to-system.sh
+#
+# PHOTO_BOOTH_SKIP_START=1 — only enable units; let multi-user.target start the oneshot
+# (used when invoked very early via systemd.run).
 
 set -euo pipefail
 
@@ -22,12 +24,19 @@ fi
 
 systemctl daemon-reload
 systemctl enable photo-booth-bootstrap.service
-systemctl start photo-booth-bootstrap.service
+
+if [[ "${PHOTO_BOOTH_SKIP_START:-0}" != "1" ]]; then
+  systemctl start photo-booth-bootstrap.service
+  echo ""
+  echo "Installed photo-booth-bootstrap.service and started a deploy run."
+else
+  echo ""
+  echo "Installed/refresh photo-booth-bootstrap.service (start deferred to normal boot)."
+fi
 
 echo ""
-echo "Installed photo-booth-bootstrap.service."
 echo "  Logs: journalctl -u photo-booth-bootstrap.service -b"
-echo "       tail -f /var/log/photo-booth-bootstrap.log"
+echo "        tail -f /var/log/photo-booth-bootstrap.log"
 echo ""
-echo "Put updates on the SD card under:  photo-booth-deploy/  (see README-SD-CARD.md)"
+echo "SD updates: copy files to boot partition photo-booth-deploy/ then reboot."
 echo ""

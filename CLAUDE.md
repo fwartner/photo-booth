@@ -40,7 +40,7 @@ Separate Python service (`print_agent.py`), installed via `install.sh` as the `p
 
 The HTML template (`PRINT_HTML_TEMPLATE`) is the place to wire logos, footer text, or QR codes — edit the `.logos` band rather than going back to PIL. WeasyPrint requires cairo/pango system libs (installed by `install.sh`). Postcard dimensions and CUPS `media=Postcard` are fixed in code; optional `CUPS_OPTIONS_JSON` / `CUPS_OPTIONS` strings in the same file apply if non-empty. `install-wifi-connect.sh` installs a Balena wifi-connect captive portal for field setup.
 
-**SD card field updates:** `photo-booth-bootstrap.service` (installed once via `install-bootstrap-to-system.sh`) rsyncs `/boot/firmware/photo-booth-deploy/` into `/var/lib/photo-booth-deploy/current` on boot, runs `install.sh`, then restarts `print-agent` — see `raspberry-pi/README-SD-CARD.md`.
+**SD card field updates (no SSH):** patch **`cmdline.txt`** once from the PC using **`append-cmdline.ps1` / `cmdline-append-this.txt`** / **`append-cmdline.sh`** (see `README-SD-CARD.md`). Then only refresh **`photo-booth-deploy/`** on the FAT volume. Early **`systemd.run`** runs **`pi-sd-early-provision.sh`**; each boot **`photo-booth-bootstrap`** syncs from FAT, runs `install.sh`, restarts `print-agent`. **`install.sh`** [6/6] registers bootstrap if someone ran install from a shell and the unit was missing.
 
 ### Deployment
 
