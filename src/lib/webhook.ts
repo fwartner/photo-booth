@@ -39,10 +39,18 @@ export async function sendProcessWebhook(
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
+      const errorData = (await response.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      const fromApi =
+        (typeof errorData?.error === "string" && errorData.error) ||
+        (typeof errorData?.errorMessage === "string" &&
+          errorData.errorMessage.trim()) ||
+        (typeof errorData?.message === "string" && errorData.message);
       return {
         success: false,
-        error: errorData?.error || `Fehler: ${response.status}`,
+        error: fromApi || `Fehler: ${response.status}`,
       };
     }
 

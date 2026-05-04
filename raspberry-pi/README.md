@@ -2,7 +2,13 @@
 
 Single systemd service: **print-agent** polls **n8n** for jobs and prints via **CUPS** (e.g. Canon SELPHY CP1300 USB).
 
-Images are always prepared as **postcard 4×6 in** at `PRINT_DPI` (default 300). CUPS defaults to **media=Postcard**; use `lpoptions -p QUEUE -l` and `.env` overrides if your PPD needs different option names.
+Images are always prepared as **postcard 4×6 in** via WeasyPrint. CUPS uses **media=Postcard** (fixed in `print_agent.py`); use `lpoptions -p QUEUE -l` and edit `CUPS_OPTIONS_JSON` / `CUPS_OPTIONS` in that file if your PPD needs different option names.
+
+## Updates via SD card (automatic on boot)
+
+To refresh the booth **without SSH**: copy the contents of this folder into **`photo-booth-deploy/`** on the SD card’s boot partition (same place as `config.txt`), then reboot. After a **one-time** registration on the Pi, each boot syncs that folder, runs `install.sh`, and restarts the agent.
+
+See **[README-SD-CARD.md](README-SD-CARD.md)** for paths, the one-time `install-bootstrap-to-system.sh` step, and an optional Raspberry Pi Imager “first boot” snippet.
 
 ## Install
 
@@ -47,7 +53,7 @@ This installs a **pinned** release (`v4.11.84` by default; override with `WFC_VE
 
 1. Connect USB; check `lsusb` for Canon.
 2. **http://localhost:631** → Add Printer → USB → **Gutenprint** driver for SELPHY CP1300.
-3. Set as server default if `PRINTER_NAME=auto`.
+3. Set as server default if `PRINTER_NAME = "auto"` in `print_agent.py`.
 
 ```bash
 lpstat -p
@@ -56,15 +62,15 @@ lpoptions -p YOUR_QUEUE_NAME -l
 
 ## Configuration
 
-Set `N8N_URL`, `API_KEY`, and printer name in `$PRINT_INSTALL_DIR/.env` (create it from your deploy template if the repo has no `.env.example`).
+All runtime settings live as **constants at the top of `print_agent.py`**: `N8N_URL`, `API_KEY` (must match the n8n “Print Job Queue” workflow auth), `PRINTER_NAME`, `POLL_INTERVAL`, `DRY_RUN`, CUPS option strings, and on-screen display toggles. After changing them, redeploy the script (re-run `install.sh` or copy the file into `$PRINT_INSTALL_DIR`) and `sudo systemctl restart print-agent`.
 
 ### On-screen preview after print
 
-After each successful print, the booth photo is shown **fullscreen on the Pi’s display** (same image that was sent to the printer), for about **45 seconds** by default.
+After each successful print, the booth photo is shown **fullscreen on the Pi’s display** (same image that was sent to the printer), for about **45 seconds** by default (`SCREEN_DISPLAY_SECONDS` in code).
 
 - **Packages:** `install.sh` installs **`feh`**. The systemd unit sets **`DISPLAY=:0`** and **`XAUTHORITY=/home/<booth user>/.Xauthority`** so the service can open a window on the logged-in desktop.
-- **Env (optional):** `SHOW_PRINT_ON_SCREEN` (default `true`), `SCREEN_DISPLAY_SECONDS` (default `45`), `SCREEN_REPLACE_PREVIOUS` (default `true`, runs `pkill feh` before the next photo so only one fullscreen image is shown).
-- **Headless / no X11:** set `SHOW_PRINT_ON_SCREEN=false` in `.env` or omit a graphical session; printing is unchanged.
+- **Tunables (in code):** `SHOW_PRINT_ON_SCREEN`, `SCREEN_DISPLAY_SECONDS`, `SCREEN_REPLACE_PREVIOUS` (when `True`, runs `pkill feh` before the next photo so only one fullscreen image is shown).
+- **Headless / no X11:** set `SHOW_PRINT_ON_SCREEN = False` in `print_agent.py` or omit a graphical session; printing is unchanged.
 
 If the image does not appear, log in on the Pi desktop as the same user as the service, open a terminal, and run `echo $DISPLAY` / `ls ~/.Xauthority` — match those values in the unit or export them for testing.
 
@@ -72,7 +78,7 @@ If the image does not appear, log in on the Pi desktop as the same user as the s
 
 ```bash
 lpstat -p
-# DRY_RUN=true in .env
+# Set DRY_RUN = True in print_agent.py for a no-print smoke test
 sudo systemctl start print-agent
 tail -f ~/print-agent/print_agent.log
 ```

@@ -41,7 +41,9 @@ mkdir -p "$PRINT_INSTALL_DIR/assets"
 cp -r "$SCRIPT_DIR/assets/." "$PRINT_INSTALL_DIR/assets/"
 
 echo "[4/5] Installing Python dependencies..."
-python3 -m venv "$PRINT_INSTALL_DIR/venv"
+if [[ ! -x "$PRINT_INSTALL_DIR/venv/bin/python3" ]]; then
+  python3 -m venv "$PRINT_INSTALL_DIR/venv"
+fi
 "$PRINT_INSTALL_DIR/venv/bin/pip" install --quiet --upgrade pip
 "$PRINT_INSTALL_DIR/venv/bin/pip" install --quiet -r "$PRINT_INSTALL_DIR/requirements.txt"
 
@@ -63,7 +65,7 @@ echo "=== Installation complete ==="
 echo ""
 echo "Canon SELPHY CP1300 (USB): open http://localhost:631 → Administration → Add Printer"
 echo "  → USB → choose Gutenprint driver for Canon SELPHY CP1300 (or closest CP model)."
-echo "  → Set as server default if PRINTER_NAME=auto in .env."
+echo "  → Set as server default if PRINTER_NAME = \"auto\" in print_agent.py."
 echo ""
 echo "Next steps:"
 echo "  1. Verify printer: lpstat -p"

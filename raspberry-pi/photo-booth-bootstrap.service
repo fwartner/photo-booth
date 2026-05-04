@@ -1,0 +1,19 @@
+[Unit]
+Description=Photo Booth — sync deploy from SD boot partition and run install
+After=local-fs.target network-online.target time-sync.target
+Wants=network-online.target
+Before=print-agent.service
+# Allow apt/network to settle before install.sh runs
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/photo-booth-bootstrap.sh
+# First boot can take a while (apt, pip, WeasyPrint deps)
+TimeoutStartSec=1200
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
