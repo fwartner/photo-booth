@@ -32,7 +32,7 @@ Two endpoints, both POSTed as `FormData` (not JSON — the photo is a `Blob`):
 - `POST /webhook/photo-booth/process` — fired after capture. Fields: `heldentyp, kategorie, mode, personenanzahl, session_id, email?, privacy_accepted, firmenname?, photo`. Response JSON may include `processed_photo` (base64 data URL) which replaces the original for preview. If the call fails, the UI falls back to the original photo and surfaces the error as a toast on the preview screen — this fallback is load-bearing for the kiosk, don't remove it.
 - `POST /webhook/photo-booth/confirm` — fired on contact-form submit with `action=confirm|retake` and `print_photo` bool. Fire-and-forget from the UI.
 
-Base URL resolution: `NEXT_PUBLIC_N8N_URL` → defaults to `https://n8n.pixelandprocess.de`. Per-endpoint overrides via `NEXT_PUBLIC_N8N_PROCESS_WEBHOOK` / `NEXT_PUBLIC_N8N_CONFIRM_WEBHOOK`. The Dockerfile bakes `NEXT_PUBLIC_N8N_URL` at build time (these are `NEXT_PUBLIC_*` — compiled into the client bundle, not runtime env).
+Image processing always posts to **`https://n8n.pixelandprocess.de/webhook/photo-booth/process`** unless `NEXT_PUBLIC_N8N_PROCESS_WEBHOOK` is set (e.g. local n8n). Confirm and other URLs still use base resolution: `NEXT_PUBLIC_N8N_URL` → defaults to `https://n8n.pixelandprocess.de`, plus per-endpoint override `NEXT_PUBLIC_N8N_CONFIRM_WEBHOOK`. The Dockerfile bakes `NEXT_PUBLIC_*` at build time (compiled into the client bundle, not runtime env).
 
 ### Raspberry Pi print agent (`raspberry-pi/`)
 

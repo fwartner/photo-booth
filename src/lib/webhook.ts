@@ -1,6 +1,6 @@
 import { SessionData, WebhookConfirmResponse } from "./types";
 
-/** Production n8n; override with NEXT_PUBLIC_N8N_URL for local workflows. */
+/** Production n8n (confirm webhook, etc.); override with NEXT_PUBLIC_N8N_URL for local workflows. */
 const DEFAULT_N8N_BASE = "https://n8n.pixelandprocess.de";
 
 function n8nBaseUrl(): string {
@@ -10,10 +10,15 @@ function n8nBaseUrl(): string {
 
 const N8N_BASE_URL = n8nBaseUrl();
 
-/** Image processing: https://n8n.pixelandprocess.de/webhook/photo-booth/process */
+/**
+ * Image generation workflow — must use this n8n webhook in production.
+ * Override only for local development (NEXT_PUBLIC_N8N_PROCESS_WEBHOOK).
+ */
+const DEFAULT_PROCESS_WEBHOOK =
+  "https://n8n.pixelandprocess.de/webhook/photo-booth/process";
+
 const PROCESS_WEBHOOK =
-  process.env.NEXT_PUBLIC_N8N_PROCESS_WEBHOOK ||
-  `${N8N_BASE_URL}/webhook/photo-booth/process`;
+  process.env.NEXT_PUBLIC_N8N_PROCESS_WEBHOOK || DEFAULT_PROCESS_WEBHOOK;
 
 const CONFIRM_WEBHOOK =
   process.env.NEXT_PUBLIC_N8N_CONFIRM_WEBHOOK ||
