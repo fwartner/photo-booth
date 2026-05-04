@@ -98,7 +98,7 @@ export async function sendConfirmWebhook(
     }
 
     if (data.processed_photo) {
-      const photoBlob = base64ToBlob(data.processed_photo, "image/png");
+      const photoBlob = await imageFieldToBlob(data.processed_photo, "image/png");
       formData.append("photo", photoBlob, "processed_photo.png");
     }
 
@@ -135,4 +135,19 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
   }
   const byteArray = new Uint8Array(byteNumbers);
   return new Blob([byteArray], { type: mimeType });
+}
+
+/** Data URL / base64 (legacy) or public https URL (e.g. S3) for the processed image. */
+async function imageFieldToBlob(
+  value: string,
+  fallbackMime: string
+): Promise<Blob> {
+  if (/^https?:\/\//i.test(value)) {
+    const res = await fetch(value, { mode: "cors" });
+    if (!res.ok) {
+      throw new Error(`processed image fetch failed: ${res.status}`);
+    }
+    return res.blob();
+  }
+  return base64ToBlob(value, fallbackMime);
 }
