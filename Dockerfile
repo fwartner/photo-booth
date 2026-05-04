@@ -10,8 +10,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-ARG NEXT_PUBLIC_N8N_URL=https://n8n.pixelandprocess.de
-ENV NEXT_PUBLIC_N8N_URL=${NEXT_PUBLIC_N8N_URL}
 RUN npm run build
 
 FROM base AS runner

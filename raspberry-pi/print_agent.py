@@ -7,12 +7,12 @@ and prints them via CUPS on the connected photo printer.
 
 Output is always postcard size: 4×6 in (Canon SELPHY postcard), rendered from
 an HTML template via WeasyPrint — reserved logo band on the top 1/4, photo
-on the bottom 3/4. CUPS media defaults to Postcard unless overridden.
+on the bottom 3/4. CUPS media is fixed to Postcard.
 
 Usage:
     python3 print_agent.py
 
-Configuration via environment variables or .env file.
+Configuration is hardcoded in this file (n8n URL, API key, tunables).
 """
 
 import base64
@@ -37,41 +37,26 @@ try:
 except ImportError:
     CUPS_AVAILABLE = False
 
-from dotenv import load_dotenv
-
-# Load .env file from script directory
-load_dotenv(Path(__file__).parent / ".env")
-
-# Postcard photo print (4×6 in) — fixed; not configurable via env
+# Postcard photo print (4×6 in) — fixed
 POSTCARD_WIDTH_IN = 4
 POSTCARD_HEIGHT_IN = 6
 
-# --- Configuration ---
-N8N_URL = os.getenv("N8N_URL", "http://localhost:5678")
-API_KEY = os.getenv("API_KEY", "changeme-print-secret")
-PRINTER_NAME = os.getenv("PRINTER_NAME", "auto")
-POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "5"))
-DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-CUPS_PRINT_QUALITY = os.getenv("CUPS_PRINT_QUALITY", "5")
-CUPS_COLOR_MODE = os.getenv("CUPS_COLOR_MODE", "color")
-CUPS_OPTIONS_JSON = os.getenv("CUPS_OPTIONS_JSON", "").strip()
-CUPS_OPTIONS = os.getenv("CUPS_OPTIONS", "").strip()
+# --- Configuration (hardcoded; edit here to tune the booth) ---
+N8N_URL = "https://n8n.pixelandprocess.de"
+API_KEY = "jMVxMDFg-uuGodGeOvyiKgIuCt3_1vQi87OY_LK9IKs"
+PRINTER_NAME = "auto"
+POLL_INTERVAL = 5
+DRY_RUN = False
+LOG_LEVEL = "INFO"
+CUPS_PRINT_QUALITY = "5"
+CUPS_COLOR_MODE = "color"
+CUPS_OPTIONS_JSON = ""
+CUPS_OPTIONS = ""
 
 # After a successful print, show the booth photo fullscreen on the Pi’s display (X11; needs feh).
-SHOW_PRINT_ON_SCREEN = os.getenv("SHOW_PRINT_ON_SCREEN", "true").lower() in (
-    "1",
-    "true",
-    "yes",
-    "on",
-)
-SCREEN_DISPLAY_SECONDS = max(1, int(os.getenv("SCREEN_DISPLAY_SECONDS", "45")))
-SCREEN_REPLACE_PREVIOUS = os.getenv("SCREEN_REPLACE_PREVIOUS", "true").lower() in (
-    "1",
-    "true",
-    "yes",
-    "on",
-)
+SHOW_PRINT_ON_SCREEN = True
+SCREEN_DISPLAY_SECONDS = 45
+SCREEN_REPLACE_PREVIOUS = True
 
 # Endpoints
 POLL_URL = f"{N8N_URL}/webhook/photo-booth/print-jobs"
@@ -82,10 +67,7 @@ PHOTO_HEIGHT_FRACTION = 0.81
 HEADER_HEIGHT_FRACTION = 0.04
 
 # Small headline text printed above the logo band.
-POSTCARD_HEADER_TEXT = os.getenv(
-    "POSTCARD_HEADER_TEXT",
-    "Deine Superkräfte für Kreislaufwirtschaft",
-)
+POSTCARD_HEADER_TEXT = "Deine Superkräfte für Kreislaufwirtschaft"
 
 # Logos shown in the top band of the postcard. Shipped alongside this script.
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -117,21 +99,8 @@ log = logging.getLogger("print_agent")
 
 
 def build_cups_job_options():
-    """
-    Build option dict for pycups printFile. Defaults target postcard / 4×6.
-
-    CUPS_MEDIA: if unset, use \"Postcard\". If set to empty string, omit
-    \"media\" so only JSON/kv options apply. Override via CUPS_OPTIONS_JSON
-    or CUPS_OPTIONS (e.g. PageSize for some PPDs).
-    """
-    opts = {}
-
-    if "CUPS_MEDIA" in os.environ:
-        media = os.environ["CUPS_MEDIA"].strip()
-        if media:
-            opts["media"] = media
-    else:
-        opts["media"] = "Postcard"
+    """Build option dict for pycups printFile. Postcard / 4×6; extras from CUPS_* constants."""
+    opts = {"media": "Postcard"}
 
     if CUPS_PRINT_QUALITY:
         opts["print-quality"] = CUPS_PRINT_QUALITY
@@ -523,7 +492,7 @@ def show_image_on_display(source_path):
     except FileNotFoundError:
         log.warning(
             "feh not found — install on the Pi: sudo apt install feh "
-            "(or set SHOW_PRINT_ON_SCREEN=false to disable)"
+            "(or set SHOW_PRINT_ON_SCREEN = False in this script to disable)"
         )
 
 

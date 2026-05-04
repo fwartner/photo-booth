@@ -40,13 +40,6 @@ cp "$SCRIPT_DIR/requirements.txt" "$PRINT_INSTALL_DIR/"
 mkdir -p "$PRINT_INSTALL_DIR/assets"
 cp -r "$SCRIPT_DIR/assets/." "$PRINT_INSTALL_DIR/assets/"
 
-if [ ! -f "$PRINT_INSTALL_DIR/.env" ]; then
-    cp "$SCRIPT_DIR/.env.example" "$PRINT_INSTALL_DIR/.env"
-    echo "  -> Created .env file - EDIT IT with your n8n URL and API key!"
-else
-    echo "  -> .env already exists, keeping current config"
-fi
-
 echo "[4/5] Installing Python dependencies..."
 python3 -m venv "$PRINT_INSTALL_DIR/venv"
 "$PRINT_INSTALL_DIR/venv/bin/pip" install --quiet --upgrade pip
@@ -73,10 +66,9 @@ echo "  → USB → choose Gutenprint driver for Canon SELPHY CP1300 (or closest
 echo "  → Set as server default if PRINTER_NAME=auto in .env."
 echo ""
 echo "Next steps:"
-echo "  1. Edit $PRINT_INSTALL_DIR/.env"
-echo "  2. Verify printer: lpstat -p"
-echo "  3. sudo systemctl start print-agent"
-echo "  4. sudo systemctl status print-agent"
+echo "  1. Verify printer: lpstat -p"
+echo "  2. sudo systemctl start print-agent"
+echo "  3. sudo systemctl status print-agent"
 echo "     tail -f $PRINT_INSTALL_DIR/print_agent.log"
 echo ""
 echo "Optional WiFi captive portal (no connection): from this folder on the Pi, run:"
