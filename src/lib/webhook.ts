@@ -29,6 +29,7 @@ export async function sendProcessWebhook(
     }
 
     if (data.photo) {
+      formData.append("photo_base64", data.photo);
       const photoBlob = base64ToBlob(data.photo, "image/png");
       formData.append("photo", photoBlob, "photo.png");
     }
