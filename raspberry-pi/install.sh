@@ -24,7 +24,8 @@ sudo apt-get install -y -qq \
     usbutils \
     libjpeg-dev libpng-dev \
     libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 \
-    libffi-dev shared-mime-info fonts-dejavu
+    libffi-dev shared-mime-info fonts-dejavu \
+    feh
 
 echo "[2/5] Configuring CUPS (Canon Selphy CP1300: add via http://localhost:631, USB, Gutenprint)..."
 sudo systemctl enable cups
@@ -36,6 +37,8 @@ echo "[3/5] Setting up application..."
 mkdir -p "$PRINT_INSTALL_DIR"
 cp "$SCRIPT_DIR/print_agent.py" "$PRINT_INSTALL_DIR/"
 cp "$SCRIPT_DIR/requirements.txt" "$PRINT_INSTALL_DIR/"
+mkdir -p "$PRINT_INSTALL_DIR/assets"
+cp -r "$SCRIPT_DIR/assets/." "$PRINT_INSTALL_DIR/assets/"
 
 if [ ! -f "$PRINT_INSTALL_DIR/.env" ]; then
     cp "$SCRIPT_DIR/.env.example" "$PRINT_INSTALL_DIR/.env"
@@ -55,6 +58,7 @@ sed \
   -e "s|^User=.*|User=$BOOTH_USER|" \
   -e "s|^WorkingDirectory=.*|WorkingDirectory=$PRINT_INSTALL_DIR|" \
   -e "s|^ExecStart=.*|ExecStart=$PRINT_INSTALL_DIR/venv/bin/python3 print_agent.py|" \
+  -e "s|/home/pi/.Xauthority|/home/$BOOTH_USER/.Xauthority|g" \
   "$SCRIPT_DIR/print-agent.service" >"$SERVICE_TMP"
 sudo cp "$SERVICE_TMP" /etc/systemd/system/print-agent.service
 rm -f "$SERVICE_TMP"

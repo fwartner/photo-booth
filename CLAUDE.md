@@ -36,7 +36,7 @@ Base URL resolution: `NEXT_PUBLIC_N8N_URL` → defaults to `https://n8n.pixeland
 
 ### Raspberry Pi print agent (`raspberry-pi/`)
 
-Separate Python service (`print_agent.py`), installed via `install.sh` as the `print-agent` systemd unit. Polls `GET /webhook/photo-booth/print-jobs` on n8n, downloads the image, and renders a **4×6 in postcard PDF** from an HTML template via WeasyPrint: reserved logo band on top and the photo on the bottom (`PHOTO_HEIGHT_FRACTION = 0.82`). Submits the PDF to CUPS (Canon SELPHY CP1300 via Gutenprint) and reports back to `/webhook/photo-booth/print-done`.
+Separate Python service (`print_agent.py`), installed via `install.sh` as the `print-agent` systemd unit. Polls `GET /webhook/photo-booth/print-jobs` on n8n, downloads the image, and renders a **4×6 in postcard PDF** from an HTML template via WeasyPrint: reserved logo band on top and the photo on the bottom (`PHOTO_HEIGHT_FRACTION = 0.82`). Submits the PDF to CUPS (Canon SELPHY CP1300 via Gutenprint) and reports back to `/webhook/photo-booth/print-done`. After a successful print, the downloaded booth image is shown fullscreen on the Pi display via **feh** (X11; `DISPLAY` / `XAUTHORITY` on the systemd unit; tunable with `SHOW_PRINT_ON_SCREEN`, `SCREEN_DISPLAY_SECONDS`).
 
 The HTML template (`PRINT_HTML_TEMPLATE`) is the place to wire logos, footer text, or QR codes — edit the `.logos` band rather than going back to PIL. WeasyPrint requires cairo/pango system libs (installed by `install.sh`). Postcard dimensions are hard-coded; CUPS media defaults to `Postcard` but can be overridden via `CUPS_MEDIA`, `CUPS_OPTIONS_JSON`, or `CUPS_OPTIONS` env vars. `install-wifi-connect.sh` installs a Balena wifi-connect captive portal for field setup.
 

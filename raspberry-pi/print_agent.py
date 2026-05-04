@@ -16,8 +16,11 @@ Configuration via environment variables or .env file.
 """
 
 import base64
+import html
 import json
 import os
+import shutil
+import subprocess
 import sys
 import time
 import logging
@@ -55,12 +58,51 @@ CUPS_COLOR_MODE = os.getenv("CUPS_COLOR_MODE", "color")
 CUPS_OPTIONS_JSON = os.getenv("CUPS_OPTIONS_JSON", "").strip()
 CUPS_OPTIONS = os.getenv("CUPS_OPTIONS", "").strip()
 
+# After a successful print, show the booth photo fullscreen on the Pi’s display (X11; needs feh).
+SHOW_PRINT_ON_SCREEN = os.getenv("SHOW_PRINT_ON_SCREEN", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+SCREEN_DISPLAY_SECONDS = max(1, int(os.getenv("SCREEN_DISPLAY_SECONDS", "45")))
+SCREEN_REPLACE_PREVIOUS = os.getenv("SCREEN_REPLACE_PREVIOUS", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
 # Endpoints
 POLL_URL = f"{N8N_URL}/webhook/photo-booth/print-jobs"
 DONE_URL = f"{N8N_URL}/webhook/photo-booth/print-done"
 
-# Photo occupies the bottom of the postcard; the top strip is reserved for logos.
-PHOTO_HEIGHT_FRACTION = 0.82
+# Postcard vertical layout: logo band + small header text + photo. Fractions sum to 1.
+PHOTO_HEIGHT_FRACTION = 0.81
+HEADER_HEIGHT_FRACTION = 0.04
+
+# Small headline text printed above the logo band.
+POSTCARD_HEADER_TEXT = os.getenv(
+    "POSTCARD_HEADER_TEXT",
+    "Deine Superkräfte für Kreislaufwirtschaft",
+)
+
+# Logos shown in the top band of the postcard. Shipped alongside this script.
+ASSETS_DIR = Path(__file__).parent / "assets"
+LOGO_LEFT_PATH = ASSETS_DIR / "recyclingmonitor_logo.png"
+LOGO_RIGHT_PATH = ASSETS_DIR / "ifat_munich_logo.png"
+
+
+def _logo_data_url(path):
+    try:
+        with open(path, "rb") as f:
+            return "data:image/png;base64," + base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        return ""
+
+
+LOGO_LEFT_DATA_URL = _logo_data_url(LOGO_LEFT_PATH)
+LOGO_RIGHT_DATA_URL = _logo_data_url(LOGO_RIGHT_PATH)
 
 # --- Logging ---
 logging.basicConfig(
@@ -224,11 +266,70 @@ PRINT_HTML_TEMPLATE = """<!DOCTYPE html>
       flex-direction: column;
       width: 100%; height: 100%;
     }}
+    .header {{
+      width: 100%;
+      height: {header_pct}%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.15in;
+      font-family: "Lato", "DejaVu Sans", sans-serif;
+      font-weight: 700;
+      font-size: 8.5pt;
+      letter-spacing: 0.13em;
+      white-space: nowrap;
+      text-transform: uppercase;
+      color: #034C80;
+    }}
     .logos {{
       width: 100%;
       height: {logos_pct}%;
       box-sizing: border-box;
-      /* Reserved for logos — content added later. */
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.2in;
+      padding: 0.22in 0.15in 0.04in;
+    }}
+    .logos .slot {{
+      height: 100%;
+      display: flex;
+    }}
+    .logos .slot.left {{
+      flex: 1 1 0;
+      align-items: center;
+      justify-content: flex-start;
+    }}
+    .logos .slot.right {{
+      flex: 0 0 auto;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.04in;
+    }}
+    .logos img {{
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }}
+    .logos .slot.left img {{ height: 0.56in; width: auto; }}
+    .logos .slot.right img {{ width: 0.36in; height: auto; }}
+    .qr {{
+      width: 0.36in;
+      height: 0.36in;
+      flex: 0 0 auto;
+      border: 1.2pt dashed #94a3b8;
+      border-radius: 4pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "DejaVu Sans", sans-serif;
+      font-size: 7pt;
+      letter-spacing: 0.1em;
+      color: #64748b;
+      background: #f8fafc;
     }}
     .photo {{
       width: 100%;
@@ -249,7 +350,14 @@ PRINT_HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
   <div class="postcard">
-    <div class="logos"></div>
+    <div class="logos">
+      <div class="slot left"><img src="{logo_left_src}" alt="RecyclingMonitor" /></div>
+      <div class="slot right">
+        <img src="{logo_right_src}" alt="IFAT Munich" />
+        <div class="qr">QR</div>
+      </div>
+    </div>
+    <div class="header">{header_text}</div>
     <div class="photo"><img src="{img_src}" /></div>
   </div>
 </body>
@@ -266,12 +374,18 @@ def prepare_for_print(image_path):
         img_src = f"data:{mime};base64,{base64.b64encode(img_bytes).decode()}"
 
         photo_pct = PHOTO_HEIGHT_FRACTION * 100
+        header_pct = HEADER_HEIGHT_FRACTION * 100
+        logos_pct = 100 - photo_pct - header_pct
         html_content = PRINT_HTML_TEMPLATE.format(
             w=POSTCARD_WIDTH_IN,
             h=POSTCARD_HEIGHT_IN,
             photo_pct=photo_pct,
-            logos_pct=100 - photo_pct,
+            logos_pct=logos_pct,
+            header_pct=header_pct,
+            header_text=html.escape(POSTCARD_HEADER_TEXT),
             img_src=img_src,
+            logo_left_src=LOGO_LEFT_DATA_URL,
+            logo_right_src=LOGO_RIGHT_DATA_URL,
         )
 
         print_path = image_path.rsplit(".", 1)[0] + "_print.pdf"
@@ -337,6 +451,82 @@ def report_completion(session_id, status="done", message=""):
         return False
 
 
+def display_env_for_screen():
+    """Environment for spawning a GUI viewer on the logged-in desktop session."""
+    env = os.environ.copy()
+    env.setdefault("DISPLAY", ":0")
+    if not env.get("XAUTHORITY"):
+        xa = Path.home() / ".Xauthority"
+        if xa.is_file():
+            env["XAUTHORITY"] = str(xa)
+    return env
+
+
+def show_image_on_display(source_path):
+    """
+    Show the downloaded booth image fullscreen on the local display, then exit after
+    SCREEN_DISPLAY_SECONDS. Copies to a stable path so temp files can be deleted safely.
+
+    Requires: X11 session, feh (`apt install feh`), DISPLAY (default :0) and usually
+    XAUTHORITY for the booth user — set on the systemd unit when running as a service.
+    """
+    if not SHOW_PRINT_ON_SCREEN:
+        return
+    if not source_path or not os.path.isfile(source_path):
+        return
+
+    ext = Path(source_path).suffix.lower()
+    if ext not in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+        ext = ".png"
+    cache = Path(__file__).parent / f".last_booth_display{ext}"
+
+    try:
+        shutil.copy2(source_path, cache)
+    except OSError as e:
+        log.warning(f"Could not copy image for on-screen display: {e}")
+        return
+
+    env = display_env_for_screen()
+    if SCREEN_REPLACE_PREVIOUS:
+        try:
+            subprocess.run(
+                ["pkill", "-x", "feh"],
+                env=env,
+                capture_output=True,
+                timeout=5,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
+    cmd = [
+        "timeout",
+        str(SCREEN_DISPLAY_SECONDS),
+        "feh",
+        "--fullscreen",
+        "--borderless",
+        "--hide-pointer",
+        "--auto-zoom",
+        "--no-menus",
+        str(cache),
+    ]
+    try:
+        subprocess.Popen(
+            cmd,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        log.info(
+            f"On-screen display started ({SCREEN_DISPLAY_SECONDS}s, DISPLAY={env.get('DISPLAY')})"
+        )
+    except FileNotFoundError:
+        log.warning(
+            "feh not found — install on the Pi: sudo apt install feh "
+            "(or set SHOW_PRINT_ON_SCREEN=false to disable)"
+        )
+
+
 def cleanup(*paths):
     """Remove temporary files."""
     for path in paths:
@@ -375,6 +565,7 @@ def process_job(job, printer_name):
     for attempt in range(1, max_retries + 1):
         if send_to_printer(print_path, printer_name):
             report_completion(session_id, "done", f"Printed successfully (attempt {attempt})")
+            show_image_on_display(image_path)
             cleanup(image_path, print_path)
             return
 
@@ -399,6 +590,10 @@ def main():
     )
     log.info(f"  CUPS media:    {build_cups_job_options().get('media', '(none)')}")
     log.info(f"  Dry run:       {DRY_RUN}")
+    log.info(
+        f"  On-screen:     {SHOW_PRINT_ON_SCREEN} "
+        f"({SCREEN_DISPLAY_SECONDS}s, replace prev={SCREEN_REPLACE_PREVIOUS})"
+    )
     log.info("=" * 60)
 
     printer_name = get_printer()

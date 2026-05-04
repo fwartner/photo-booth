@@ -12,6 +12,9 @@ ExecStart=/home/pi/print-agent/venv/bin/python3 print_agent.py
 Restart=always
 RestartSec=10
 Environment=PYTHONUNBUFFERED=1
+# Show printed photos fullscreen on the Pi’s HDMI/desktop (X11). Adjust if not using display :0.
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
 
 [Install]
 WantedBy=multi-user.target

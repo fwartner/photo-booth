@@ -56,7 +56,17 @@ lpoptions -p YOUR_QUEUE_NAME -l
 
 ## Configuration
 
-Install copies [`.env.example`](.env.example) to `$PRINT_INSTALL_DIR/.env` — set `N8N_URL`, `API_KEY`, and printer name.
+Set `N8N_URL`, `API_KEY`, and printer name in `$PRINT_INSTALL_DIR/.env` (create it from your deploy template if the repo has no `.env.example`).
+
+### On-screen preview after print
+
+After each successful print, the booth photo is shown **fullscreen on the Pi’s display** (same image that was sent to the printer), for about **45 seconds** by default.
+
+- **Packages:** `install.sh` installs **`feh`**. The systemd unit sets **`DISPLAY=:0`** and **`XAUTHORITY=/home/<booth user>/.Xauthority`** so the service can open a window on the logged-in desktop.
+- **Env (optional):** `SHOW_PRINT_ON_SCREEN` (default `true`), `SCREEN_DISPLAY_SECONDS` (default `45`), `SCREEN_REPLACE_PREVIOUS` (default `true`, runs `pkill feh` before the next photo so only one fullscreen image is shown).
+- **Headless / no X11:** set `SHOW_PRINT_ON_SCREEN=false` in `.env` or omit a graphical session; printing is unchanged.
+
+If the image does not appear, log in on the Pi desktop as the same user as the service, open a terminal, and run `echo $DISPLAY` / `ls ~/.Xauthority` — match those values in the unit or export them for testing.
 
 ## Verification
 
