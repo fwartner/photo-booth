@@ -1,4 +1,3 @@
-// src/lib/webhook.ts
 import { SessionData, WebhookConfirmResponse } from "./types";
 
 /** Production n8n — IFAT 2026 photo booth (hardcoded; no env overrides). */
@@ -81,7 +80,7 @@ export async function sendProcessWebhook(
 }
 
 export async function sendConfirmWebhook(
-  data: SessionData & { copies?: number }, // <-- NEU: Typ erweitert, damit "copies" erlaubt ist
+  data: SessionData,
   action: "confirm" | "retake"
 ): Promise<WebhookConfirmResponse> {
   try {
@@ -94,9 +93,6 @@ export async function sendConfirmWebhook(
     formData.append("mode", data.mode);
     formData.append("personenanzahl", String(data.personenanzahl));
     formData.append("print_photo", String(data.print_photo ?? true));
-
-    // ---> NEU: HIER WERDEN DIE KOPIEN AN DEN SERVER ÜBERGEBEN <---
-    formData.append("copies", String(data.copies || 1));
 
     if (data.firmenname) {
       formData.append("firmenname", data.firmenname);

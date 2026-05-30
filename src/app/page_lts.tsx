@@ -17,12 +17,9 @@ import {
 } from "@/lib/types";
 import { sendProcessWebhook, sendConfirmWebhook } from "@/lib/webhook";
 
-// Kleiner Workaround, falls 'copies' noch nicht in deinen Types definiert ist
-type ExtendedSessionData = SessionData & { copies?: number };
-
 export default function PhotoBoothApp() {
   const [step, setStep] = useState<AppStep>("start");
-  const [session, setSession] = useState<ExtendedSessionData>({
+  const [session, setSession] = useState<SessionData>({
     email: "",
     heldentyp: "transparenz_scout",
     kategorie: "entsorger",
@@ -30,7 +27,6 @@ export default function PhotoBoothApp() {
     personenanzahl: 1,
     privacy_accepted: false,
     session_id: "",
-    copies: 1, // NEU: Standardwert für Kopien
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -110,14 +106,12 @@ export default function PhotoBoothApp() {
     email: string;
     privacy_accepted: boolean;
     print_photo: boolean;
-    copies: number; // NEU: Nimmt die Kopien aus dem ContactForm entgegen
   }) => {
     const updatedSession = {
       ...session,
       email: data.email,
       privacy_accepted: data.privacy_accepted,
       print_photo: data.print_photo,
-      copies: data.copies, // NEU: Speichert die Kopien in der Session
     };
     setSession(updatedSession);
     setStep("confirmed");
@@ -133,7 +127,6 @@ export default function PhotoBoothApp() {
       personenanzahl: 1,
       privacy_accepted: false,
       session_id: "",
-      copies: 1, // NEU: Reset
     });
     setError(null);
     setStep("start");
